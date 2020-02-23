@@ -1,0 +1,145 @@
+service: rapidito
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'qa'}
+  region: us-east-1
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${file(../../commons/credentials.json):${self:provider.stage}.dbHost}
+    DB_PORT: ${file(../../commons/credentials.json):${self:provider.stage}.dbPort}
+    DB_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.dbPassword}
+    DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
+    DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+      Resource: '*'
+
+package:
+  include:
+    - ../../commons/**
+  exclude:
+    - node_modules/**
+
+functions:
+  reports:
+    handler: handler.reports
+    timeout: 30
+    events:
+      - http:
+          path: reports
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+
+  entries:
+    handler: handler.entries
+    timeout: 30
+    events:
+      - http:
+          path: reports/entries
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+
+  route:
+    handler: handler.route
+    timeout: 30
+    events:
+      - http:
+          path: reports/route
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  warehouse:
+    handler: handler.warehouse
+    timeout: 30
+    events:
+      - http:
+          path: reports/warehouse
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+
+  stateAccount:
+    handler: handler.stateAccount
+    timeout: 30
+    events:
+      - http:
+          path: reports/stateAccount
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+

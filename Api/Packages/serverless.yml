@@ -1,0 +1,181 @@
+service: Package-rapidito
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'qa'}
+  region: us-east-1
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${file(../../commons/credentials.json):${self:provider.stage}.dbHost}
+    DB_PORT: ${file(../../commons/credentials.json):${self:provider.stage}.dbPort}
+    DB_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.dbPassword}
+    DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
+    DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
+    API_KEY_TIGO: ${file(../../commons/credentials.json):${self:provider.stage}.api_key_tigo}
+    ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+        - ses:SendEmail
+        - SNS:Publish
+      Resource: "*"
+
+package:
+  include:
+    - ../../commons/**
+  exclude:
+    - node_modules/**
+
+functions:
+  packageGet:
+    handler: handler.read
+    timeout: 30
+    events:
+      - http:
+          path: packages
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  packageDetail:
+    handler: handler.detail
+    timeout: 30
+    events:
+      - http:
+          path: packages/{package_id}
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  packageCreate:
+    handler: handler.create
+    timeout: 30
+    events:
+      - http:
+          path: packages
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  packageUpdate:
+    handler: handler.update
+    timeout: 30
+    events:
+      - http:
+          path: packages/{package_id}
+          method: put
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  packageDelete:
+    handler: handler.delete
+    timeout: 30
+    events:
+      - http:
+          path: packages
+          method: delete
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  packageTransfer:
+    handler: handler.transfer
+    timeout: 30
+    events:
+      - http:
+          path: packages/transfer
+          method: put
+          cors:
+          origin: "*"
+          allowCredentials: true
+          headers:
+            - Content-Type
+            - X-Amz-Date
+            - Authorization
+            - X-Api-Key
+            - X-Amz-Security-Token
+            - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  sendMessage:
+    handler: handler.sendSMSEvent
+    timeout: 30
+    events:
+      - sns:
+          topicName: sms-rapidito
+          displayName: sms-rapidito
+    layers:
+       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+  sesBounds:
+    handler: handler.sesTopic
+    timeout: 30

@@ -1,0 +1,19 @@
+{
+  "name": "courier-api",
+  "version": "1.0.0",
+  "description": "API Services",
+  "main": "handler.js",
+  "author": "Cesar Salazar",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.467.0",
+    "moment-timezone": "^0.5.25",
+    "mysql2": "^1.6.5",
+    "request": "^2.88.0",
+    "serverless-offline": "^4.10.3",
+    "uuid": "^3.3.2"
+  }
+}
