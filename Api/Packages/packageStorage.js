@@ -13,7 +13,7 @@ const read = (page, type, id) => {
       where = `WHERE tracking like '%${id}%'`
       break
     case 'client_id':
-      where = `WHERE A.client_id = ${parseInt(id, 10)}`
+      where = `WHERE A.client_id = '${id}'`
       _limit = 1000
       break
     case 'package_id':
@@ -59,7 +59,7 @@ const create = data => {
   const total = data.status === 'Registrado' ? 0 : parseInt(data.weight, 10) * parseInt(data.cuota, 10)
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status, entregado, cancelado, delivery, create_by, costo_producto)
                   VALUES ('${data.tracking}',
-                  ${data.client_id},
+                  '${data.client_id}',
                   '${data.weight}',
                   '${data.description}',                  
                   ${data.category_id ? data.category_id : 1},
@@ -77,7 +77,7 @@ const createDetail = (data, package_id, date, status) => {
   }
 
   const query = `INSERT INTO paquetes_detail (package_id, status, fecha_registro, client_id, tba)
-                  VALUES (${package_id},${updateStatus},'${date}',${data.client_id},0)`
+                  VALUES (${package_id},${updateStatus},'${date}','${data.client_id}',0)`
   return query
 }
 
@@ -120,12 +120,12 @@ const remove = package_id => {
 }
 
 const findByTracking = data => {
-  const query = `SELECT * FROM paquetes A WHERE A.tracking = '${data.tracking}' and A.client_id = ${data.client_id}`
+  const query = `SELECT * FROM paquetes A WHERE A.tracking = '${data.tracking}' and A.client_id = '${data.client_id}'`
   return query
 }
 
 const getUserInfo = user => {
-  const query = `SELECT email, contact_name, client_name, phone FROM clientes WHERE client_id = ${user}`
+  const query = `SELECT email, contact_name, client_name, phone FROM clientes WHERE client_id = '${user}'`
   return query
 }
 
@@ -140,14 +140,14 @@ const saveRemaining = (data, date) => {
   const query = `INSERT INTO accounts_receivable (package_id, amount, charge, remaining, client_id, date)
                   VALUES (${data.package_id},${total},${data.anticipo ? parseInt(data.anticipo) : 0},${
     data.pendiente ? parseInt(data.pendiente) : 0
-  },${data.client_id}, '${date}')`
+  },'${data.client_id}', '${date}')`
 
   return query
 }
 
 const transfer = params => {
   const query = ` UPDATE paquetes 
-                SET total_a_pagar = ${params.total}, client_id = ${params.client_id} 
+                SET total_a_pagar = ${params.total}, client_id = '${params.client_id}'
                 WHERE package_id = ${params.package_id} `
 
   return query

@@ -79,9 +79,9 @@ module.exports.create = async (event, context) => {
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
     }
 
-    const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
+    //const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
 
-    if (!data.status || data.status !== 'Registrado') {
+    /*if (!data.status || data.status !== 'Registrado') {
       let template = prepareToSend(data, userData)
       await notifyEmail(AWS, template)
 
@@ -105,7 +105,7 @@ module.exports.create = async (event, context) => {
           }
         })
       })
-    }
+    }*/
 
     return response(200, data, connection)
   } catch (e) {
@@ -137,7 +137,7 @@ module.exports.update = async (event, context) => {
      * Entregado con saldo pendiente
      * */
     if (download) {
-      console.log('hereeeeee')
+      
       const update = await connection.execute(storage.downloadSimple(date, package_id))
     } else {
       console.log('2')

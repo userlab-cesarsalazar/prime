@@ -44,7 +44,7 @@ const read = (page, params) => {
 
   const query = `SELECT A.id, A.name, A.email, A.type, A.activo, B.client_id, B.phone, B.entrega, B.cuota, B.date_created, B.preferences, B.message_user, B.nit, B.main_address
                   FROM  usuarios A
-                  LEFT JOIN clientes B on A.id = B.id_usuario
+                  INNER JOIN clientes B on A.id = B.id_usuario
                   ${_inner}
                   WHERE A.activo = 'Y'
                   ${where}
@@ -65,7 +65,7 @@ const detailByClient = client => {
   const query = `SELECT A.name, A.email, B.entrega, B.phone, B.nit, B.main_address, B.message_user, B.cuota, B.client_id, A.type as profile
                  FROM clientes B
                  LEFT JOIN usuarios A on B.id_usuario = A.id
-                 WHERE B.client_id = ${client}`
+                 WHERE B.client_id = '${client}'`
   return query
 }
 
@@ -75,9 +75,8 @@ const create = data => {
 }
 
 const createProfile = (data, user_id) => {
-  const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email, contact_name )
-                  VALUES ('${data.entrega}','${data.phone}','${data.nit}','${data.main_address}','${data.message_user}',${data.cuota},'${data.date_created}',${user_id}, '${data.name}','${data.email}','${data.name}')`
-
+  const query = `INSERT INTO clientes (client_id ,entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email, contact_name )
+                  VALUES ('${data.client_id}','${data.entrega}','${data.phone}','${data.nit}','${data.main_address}','${data.message_user}',${data.cuota},'${data.date_created}',${user_id}, '${data.name}','${data.email}','${data.name}')`
   return query
 }
 
@@ -118,6 +117,12 @@ const getPackage = id => {
   return query
 }
 
+const findMaxId = () => {
+  const query = `SELECT MAX(client_id) as maximum FROM clientes`;
+  
+  return query
+}
+
 const findByStr = (str, filter) => {
   let WHERE = ''
   if (filter === 'email') {
@@ -146,4 +151,5 @@ module.exports = {
   getPackage,
   findByStr,
   detailByClient,
+  findMaxId
 }

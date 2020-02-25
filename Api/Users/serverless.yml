@@ -180,7 +180,7 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
           authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+            arn: "arn:aws:cognito-idp:us-east-1:097890312429:userpool/us-east-1_V3Jt8F0yn"
       layers:
         - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
 
@@ -209,8 +209,33 @@ functions:
 
   UsersMigration:
     handler: handler.migration
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
 
   UserPostConfirmation:
     handler: handler.postConfirmation
+    layers:
+      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+
+
+Resources:
+  GatewayResponseDefault4XX:
+    Type: 'AWS::ApiGateway::GatewayResponse'
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: 'ApiGatewayRestApi'
+  GatewayResponseDefault5XX:
+    Type: 'AWS::ApiGateway::GatewayResponse'
+    Properties:
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+      ResponseType: DEFAULT_5XX
+      RestApiId:
+        Ref: 'ApiGatewayRestApi'
 
 

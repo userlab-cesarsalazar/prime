@@ -88,7 +88,11 @@ module.exports.create = async (event, context) => {
     const connection = await mysql.createConnection(dbConfig)
     let obj = serializeData(data, false)
     const save = await connection.execute(storage.post(obj))
-
+    let [client_id] = await connection.execute(storage.findMaxId())
+    //let _client = parseInt(client_id[0].maximum.replace(/[A-Z]/g,''),10)
+    let _client = client_id[0].maximum + 1
+    obj.client_id = _client
+    
     if (save) await connection.execute(storage.createProfile(obj, save[0].insertId))
 
     return response(200, data, connection)
@@ -224,7 +228,18 @@ module.exports.profile = async (event, context) => {
 
     return response(200, profile, null)
   } catch (Error) {
-    console.log(Error, 'ee')
+    console.log(Error, 'error')
+    return response(400, { error: Error }, null)
+  }
+}
+
+module.exports.profileTest = async (event, context) => {
+  try {
+    
+    console.log(event)
+    return response(200, "hola  undo", null)
+  } catch (Error) {
+    console.log(Error, 'error')
     return response(400, { error: Error }, null)
   }
 }
@@ -234,16 +249,16 @@ module.exports.getPackagesUser = async (event, context) => {
     const token = event.headers.Authorization
 
     if (!token) throw 'No token provider'
-
+    
     const decode = jwt_decode(token)
-
+    
     const connection = await mysql.createConnection(dbConfig)
     let user_id = ''
     if (decode.profile === 'cliente') {
       let [user] = await connection.execute(storage.getProfile(decode.email))
       user_id = user[0].client_id
     } else {
-      user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
+      user_id = event.pathParameters && event.pathParameters.user_id ?  event.pathParameters.user_id  : undefined
     }
 
     if (user_id === undefined) throw 'pathParameters missing'
