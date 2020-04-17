@@ -146,8 +146,9 @@ const saveRemaining = (data, date) => {
 }
 
 const transfer = params => {
+  const moment = require('moment-timezone')
   const query = ` UPDATE paquetes 
-                SET total_a_pagar = ${params.total}, client_id = '${params.client_id}'
+                SET total_a_pagar = ${params.total}, client_id = '${params.client_id}' , ent_date = '${moment(params.ent_date).format('YYYY-MM-DD')}'
                 WHERE package_id = ${params.package_id} `
 
   return query
