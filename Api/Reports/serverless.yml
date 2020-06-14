@@ -1,4 +1,4 @@
-service: rapidito
+service: reports-pn
 
 plugins:
   - serverless-offline
@@ -6,7 +6,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: ${opt:stage, 'qa'}
+  stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
     STAGE: ${self:provider.stage}
@@ -50,7 +50,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
 
   entries:
@@ -73,7 +73,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
 
   route:
@@ -96,7 +96,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   warehouse:
     handler: handler.warehouse
@@ -118,7 +118,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
 
   stateAccount:
@@ -141,5 +141,5 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-      - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 

@@ -301,7 +301,7 @@ module.exports.postConfirmation = async (event, context) => {
     const [users] = await connection.execute(sql)
 
     const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email )
-                  VALUES ('Entrega en Traestodo','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}' )`
+                  VALUES ('Entrega en PRIME','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}' )`
 
     const [profile] = await connection.execute(query)
 
@@ -314,9 +314,6 @@ module.exports.postConfirmation = async (event, context) => {
 }
 
 const cognitoSetGroup = (name, email, type) => {
-  console.log(process.env['IDENTITY'])
-  console.log(process.env['ACCESS_KEY'])
-  console.log(process.env['SECRET_KEY'])
 
   AWS.config.region = 'us-east-1'
   AWS.config.update({
@@ -369,7 +366,7 @@ const serializeData = (data, update) => {
   dataToSave.name = data.name
   dataToSave.email = data.email
   dataToSave.type = data.type
-  ;(dataToSave.entrega = data.entrega ? data.entrega : 'Entrega en Traestodo'), //can be Entrega en Traestodo o Entrega a Domicilio
+  ;(dataToSave.entrega = data.entrega ? data.entrega : 'Entrega en Prime'), //can be Entrega en Traestodo o Entrega a Domicilio
     (dataToSave.phone = data.phone ? data.phone : '')
   dataToSave.nit = data.nit ? data.nit : ''
   dataToSave.main_address = data.main_address ? data.main_address : '' // client address

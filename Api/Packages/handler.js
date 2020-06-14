@@ -219,7 +219,7 @@ function prepareToSend(user, profile) {
     mailList: [profile[0].email],
     from: 'hola@traestodo.com',
     subject: `Paquete listo para entrega!!`,
-    bcc: ['cesar.augs@gmail.com', 'minondo@hotmail.com'],
+    bcc: ['cesar.augs@gmail.com'],
     body: {
       Html: {
         Charset: 'UTF-8',
@@ -233,8 +233,8 @@ function prepareToSend(user, profile) {
                 <div>
                 </p>
                 Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
-                 12 Calle 2-04 Edificio Plaza del Sol, Zona 9 Oficina 410.
-                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, tus preferencias de entrega las puedes modificar en Traestodo.com <br />`,
+                 5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
+                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, tus preferencias de entrega las puedes modificar en Primenow.com <br />`,
       },
     },
   }
@@ -258,7 +258,7 @@ module.exports.sendSMSEvent = async event => {
 
     if (!params) throw 'no_params'
 
-    const SMS = `TRAESTODO, le informa que usted Codigo de Cliente: ${params.data.client_id} , tiene un paquete con el numero de tracking ${params.data.tracking} en nuestras oficinas. Contactenos al telefono 2360-8228`
+    const SMS = `PRIMENOW, le informa que usted Codigo de Cliente: ${params.data.client_id} , tiene un paquete con el numero de tracking ${params.data.tracking} en nuestras oficinas. Contactenos al telefono 2219-3432`
     const phone = `502${params.profile[0].phone}`
 
     let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`

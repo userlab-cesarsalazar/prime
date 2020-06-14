@@ -1,4 +1,4 @@
-service: Package-rapidito
+service: Package-pn
 
 plugins:
   - serverless-offline
@@ -6,7 +6,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: ${opt:stage, 'qa'}
+  stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
     STAGE: ${self:provider.stage}
@@ -54,7 +54,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageDetail:
     handler: handler.detail
@@ -76,7 +76,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageCreate:
     handler: handler.create
@@ -98,7 +98,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageUpdate:
     handler: handler.update
@@ -120,7 +120,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageDelete:
     handler: handler.delete
@@ -142,7 +142,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageTransfer:
     handler: handler.transfer
@@ -164,17 +164,17 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   sendMessage:
     handler: handler.sendSMSEvent
     timeout: 30
     events:
       - sns:
-          topicName: sms-rapidito
-          displayName: sms-rapidito
+          topicName: sms-prime
+          displayName: sms-prime
     layers:
-       - arn:aws:lambda:us-east-1:${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}:layer:rapidito_layer_v:${file(../../commons/credentials.json):${self:provider.stage}.layerVersion}
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   sesBounds:
     handler: handler.sesTopic
