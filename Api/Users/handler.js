@@ -89,15 +89,27 @@ module.exports.create = async (event, context) => {
     let obj = serializeData(data, false)
     const save = await connection.execute(storage.post(obj))
     let [client_id] = await connection.execute(storage.findMaxId())
-    //let _client = parseInt(client_id[0].maximum.replace(/[A-Z]/g,''),10)
-    let _client = client_id[0].maximum + 1
+    //save the initial
+    let initial = client_id[0].maximum[0]
+    let secondPart = client_id[0].maximum.replace(/[A-Z]/g,'').length
+    let maximum = parseInt(client_id[0].maximum.replace(/[A-Z]/g,'')) + 1
+    let partNumeric = maximum.toString().length
+    partNumeric = secondPart - partNumeric
+    let _client = ''
+    let _var = ''
+    for (let i = 0 ; i < partNumeric; i++ ){
+      _var += `0`
+      _client = `${initial}${_var}${maximum}`
+    }
+    
     obj.client_id = _client
     
     if (save) await connection.execute(storage.createProfile(obj, save[0].insertId))
 
     return response(200, data, connection)
   } catch (e) {
-    return response(400, e, null)
+    console.log(e)
+    return response(400, e.message ? e.message : e, null)
   }
 }
 
