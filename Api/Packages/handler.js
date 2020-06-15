@@ -321,16 +321,19 @@ module.exports.guides = async (event, context) => {
 
 module.exports.closeGuides = async (event, context) => {
   try {
-  
-    const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
-  
-    if (package_id === undefined) throw 'pathParameters missing'
+    console.log(event.queryStringParameters, 'queryStringParameters')
+    const data = {
+      master: event.queryStringParameters && event.queryStringParameters.master ? event.queryStringParameters.master : undefined,
+      poliza: event.queryStringParameters && event.queryStringParameters.poliza ? event.queryStringParameters.poliza : undefined
+    }
+    
+    if (data.master === undefined) throw 'pathParameters missing'
     
     const date_closed = date
     
     let connection = await mysql.createConnection(dbConfig)
     //status [ACTIVE,CLOSED]
-    const [checkCuide] = await connection.execute(storage.closeGuide(id,date_closed))
+    const [checkCuide] = await connection.execute(storage.closeGuide(data,date_closed))
     
     return response(200, checkCuide, connection)
   } catch (e) {

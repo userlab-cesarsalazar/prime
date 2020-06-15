@@ -66,14 +66,13 @@ const create = data => {
                   ${data.total},
                   '${data.ing_date}',
                   '${status}',
-                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0}
+                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0},
                   ${data.dai ? data.dai : 0.00 },
                   ${data.cif ? data.cif: 0.00},
                   ${data.importe ? data.importe : 0.00 },
-                  ${data.master ? data.master : 0.00 },
-                  ${data.poliza ? data.poliza : 0.00 },
-                  ${data.guia ? data.guia : 0.00},
-                  )`
+                  '${data.pn_master.master ? data.pn_master.master  : '' }',
+                  '${data.pn_master.poliza ? data.pn_master.poliza : '' }',
+                  '${data.guia ? data.guia : ''}')`
   return query
 }
 
@@ -194,16 +193,16 @@ const checkGuide = ( data ) => {
 }
 
 const postGuide = ( data ) => {
-  const query = `INSERT INTO log (master, poliza, status)
+  const query = `INSERT INTO guides (master, poliza, status)
                   VALUES('${data.master}','${data.poliza}','ACTIVO')`;
+  
   return query
 }
 
-const closeGuide = (id, date) => {
-  const query = `UPDATE guides SET date_close = '${date}',
+const closeGuide = (data, date) => {
+  const query = `UPDATE guides SET date_closed = '${date}',
                   status = 'CLOSED'
-                  WHERE id = ${parseInt(id)};`
-  
+                  WHERE master = '${data.master}' AND poliza = '${data.poliza}';`
   return query
 }
 
