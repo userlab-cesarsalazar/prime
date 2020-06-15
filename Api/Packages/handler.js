@@ -74,7 +74,6 @@ module.exports.create = async (event, context) => {
       if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
     } else {
       //create
-
       const [save] = await connection.execute(storage.post(data))
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
     }
@@ -295,3 +294,48 @@ module.exports.sesTopic = async (event, context) => {
     return response(400, e, null)
   }
 }
+
+module.exports.guides = async (event, context) => {
+  try {
+    
+    let data = JSON.parse(event.body)
+    if (!data.master || !data.poliza ) throw 'missing_parameter'
+    
+    data.date_created = date
+    
+    let connection = await mysql.createConnection(dbConfig)
+    //status [ACTIVE,CLOSED]
+    const [checkCuide] = await connection.execute(storage.checkGuide(data))
+    console.log(checkCuide,'checkCuide')
+    
+    if (checkCuide.length === 0) {
+      const [save] = await connection.execute(storage.postGuide(data))
+    }
+    
+    return response(200, data, connection)
+  } catch (e) {
+    console.log(e)
+    return response(400, e, null)
+  }
+}
+
+module.exports.closeGuides = async (event, context) => {
+  try {
+  
+    const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
+  
+    if (package_id === undefined) throw 'pathParameters missing'
+    
+    const date_closed = date
+    
+    let connection = await mysql.createConnection(dbConfig)
+    //status [ACTIVE,CLOSED]
+    const [checkCuide] = await connection.execute(storage.closeGuide(id,date_closed))
+    
+    return response(200, checkCuide, connection)
+  } catch (e) {
+    console.log(e)
+    return response(400, e, null)
+  }
+}
+

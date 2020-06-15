@@ -54,7 +54,7 @@ const read = (page, params) => {
 }
 
 const detail = user_id => {
-  const query = `SELECT A.*, B.hashed_password, B.client_id, B.contact_name, B.client_name, B.phone, B.nit, B.invoice_name, B.main_address, B.entrega, B.preferences, B.cuota, B.id_usuario, B.date_created
+  const query = `SELECT A.*, B.hashed_password, B.client_id, B.contact_name, B.client_name, B.phone, B.nit, B.invoice_name, B.main_address, B.entrega, B.preferences, B.cuota, B.id_usuario, B.date_created, B.flete, B.desaduanaje
                   FROM usuarios A
                   LEFT JOIN clientes B on A.id = B.id_usuario
                   WHERE A.id = ${user_id}`

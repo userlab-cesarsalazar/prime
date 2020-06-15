@@ -47,26 +47,33 @@ const detail = package_id => {
 }
 
 const create = data => {
-  let status = 'Recoger en Traestodo.'
+  let status = 'Recoger en Prime'
   if (data.status) {
     status = data.status
   }
 
   if (data.entrega === 'Entrega a Domicilio') {
-    status = 'Listo para Entrega a Domicilio.'
+    status = 'Listo para Entrega a Domicilio'
   }
-
-  const total = data.status === 'Registrado' ? 0 : parseInt(data.weight, 10) * parseInt(data.cuota, 10)
-  const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status, entregado, cancelado, delivery, create_by, costo_producto)
+  
+  const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia)
                   VALUES ('${data.tracking}',
                   '${data.client_id}',
                   '${data.weight}',
                   '${data.description}',                  
                   ${data.category_id ? data.category_id : 1},
-                  ${total},
+                  ${data.total},
                   '${data.ing_date}',
                   '${status}',
-                  0,0,0,'NEW_SYSTEM',${data.costo_producto ? data.costo_producto : 0})`
+                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0}
+                  ${data.dai ? data.dai : 0.00 },
+                  ${data.cif ? data.cif: 0.00},
+                  ${data.importe ? data.importe : 0.00 },
+                  ${data.master ? data.master : 0.00 },
+                  ${data.poliza ? data.poliza : 0.00 },
+                  ${data.guia ? data.guia : 0.00},
+                  )`
   return query
 }
 
@@ -82,25 +89,31 @@ const createDetail = (data, package_id, date, status) => {
 }
 
 const update = (checkPackage, data, date) => {
-  let status = 'Recoger en Traestodo.'
+  let status = 'Recoger en Prime'
 
   if (checkPackage.entrega === 'Entrega a Domicilio') {
-    status = 'Listo para Entrega a Domicilio.'
+    status = 'Listo para Entrega a Domicilio'
   }
-
-  const total = parseInt(data.weight, 10) * parseInt(data.cuota, 10)
-
+  
   const query = `UPDATE paquetes SET weight = '${data.weight}',
-                  description = '${data.description}', status = '${status}', total_a_pagar = ${total},
+                  description = '${data.description}',
+                  status = '${status}',
+                  total_a_pagar = ${data.total},
                   ing_date = '${date}',
                   category_id = ${data.category_id}
+                  costo_producto = ${data.cost}
+                  dai = ${data.dai},
+                  cif = ${data.cif},
+                  importe = ${data.importe},
+                  master = ${data.master},
+                  poliza = ${data.poliza},
+                  guia = ${data.guia}
                   WHERE package_id = ${parseInt(checkPackage.package_id, 10)};`
 
   return query
 }
 
 const updateStatus = (data, package_id, date, status) => {
-  let total = data.total_a_pagar ? data.total_a_pagar : parseInt(data.weight, 10) * parseInt(data.cuota, 10)
 
   const query = `UPDATE paquetes SET weight = '${data.weight}',
                   description = '${data.description}', status = '${status}', total_a_pagar = ${total},
@@ -110,6 +123,7 @@ const updateStatus = (data, package_id, date, status) => {
                   cancelado = ${data.cancelado ? data.cancelado : 0},
                   anticipo = '${data.anticipo ? data.anticipo : '0'}',
                   pending_amount = ${data.pendiente ? data.pendiente : 0}
+                  total: ${data.total}
                   WHERE package_id = ${parseInt(package_id, 10)};`
   return query
 }
@@ -174,6 +188,25 @@ const downloadSimple = (date, package_id) => {
   return query
 }
 
+const checkGuide = ( data ) => {
+  const query = `SELECT * FROM guides WHERE master = '${data.master}' AND poliza = '${data.poliza}'`
+  return query
+}
+
+const postGuide = ( data ) => {
+  const query = `INSERT INTO log (master, poliza, status)
+                  VALUES('${data.master}','${data.poliza}','ACTIVO')`;
+  return query
+}
+
+const closeGuide = (id, date) => {
+  const query = `UPDATE guides SET date_close = '${date}',
+                  status = 'CLOSED'
+                  WHERE id = ${parseInt(id)};`
+  
+  return query
+}
+
 module.exports = {
   get: read,
   post: create,
@@ -188,4 +221,7 @@ module.exports = {
   transfer,
   logPackage,
   downloadSimple,
+  checkGuide,
+  closeGuide,
+  postGuide
 }
