@@ -90,9 +90,9 @@ module.exports.create = async (event, context) => {
     const save = await connection.execute(storage.post(obj))
     let [client_id] = await connection.execute(storage.findMaxId())
     //save the initial
-    let initial = client_id[0].maximum[0]
-    let secondPart = client_id[0].maximum.replace(/[A-Z]/g,'').length
-    let maximum = parseInt(client_id[0].maximum.replace(/[A-Z]/g,'')) + 1
+    let initial = client_id[0].client_id[0]
+    let secondPart = client_id[0].client_id.replace(/[A-Z]/g,'').length
+    let maximum = parseInt(client_id[0].client_id.replace(/[A-Z]/g,'')) + 1
     let partNumeric = maximum.toString().length
     partNumeric = secondPart - partNumeric
     let _client = ''
@@ -101,7 +101,6 @@ module.exports.create = async (event, context) => {
       _var += `0`
       _client = `${initial}${_var}${maximum}`
     }
-    
     obj.client_id = _client
     
     if (save) await connection.execute(storage.createProfile(obj, save[0].insertId))

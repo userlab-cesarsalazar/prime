@@ -123,7 +123,7 @@ const getPackage = id => {
 }
 
 const findMaxId = () => {
-  const query = `SELECT MAX(client_id) as maximum FROM clientes`;
+  const query = `SELECT id, client_id FROM clientes WHERE id = ( SELECT MAX(id) FROM clientes )`;
   
   return query
 }
