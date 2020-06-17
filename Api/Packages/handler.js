@@ -216,7 +216,7 @@ module.exports.transfer = async (event, context) => {
 function prepareToSend(user, profile) {
   const template = {
     mailList: [profile[0].email],
-    from: 'hola@traestodo.com',
+    from: 'hola@primenowcourier.com',
     subject: `Paquete listo para entrega!!`,
     bcc: ['cesar.augs@gmail.com'],
     body: {
