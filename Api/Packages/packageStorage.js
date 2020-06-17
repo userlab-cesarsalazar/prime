@@ -38,7 +38,8 @@ const read = (page, type, id) => {
 const detail = package_id => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description,
                  C.contact_name, A.ing_date, A.ent_date, A.status, C.main_address, C.entrega,
-                 A.entregado, A.delivery, A.cancelado, A.weight, A.anticipo, A.total_a_pagar
+                 A.entregado, A.delivery, A.cancelado, A.weight, A.anticipo, A.total_a_pagar,
+                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa
                  FROM paquetes A
                  LEFT JOIN paquetes_detail B on A.package_id = B.package_id
                  LEFT JOIN clientes C on A.client_id = C.client_id
@@ -57,7 +58,7 @@ const create = data => {
   }
   
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
-                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia)
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa)
                   VALUES ('${data.tracking}',
                   '${data.client_id}',
                   '${data.weight}',
@@ -72,7 +73,9 @@ const create = data => {
                   ${data.importe ? data.importe : 0.00 },
                   '${data.pn_master.master ? data.pn_master.master  : '' }',
                   '${data.pn_master.poliza ? data.pn_master.poliza : '' }',
-                  '${data.guia ? data.guia : ''}')`
+                  '${data.guia ? data.guia : ''}',
+                  ${data.tasa ? data.tasa : 0.00})`
+  console.log(query,'ee')
   return query
 }
 

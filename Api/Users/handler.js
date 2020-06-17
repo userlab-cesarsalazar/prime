@@ -67,7 +67,7 @@ module.exports.detail = async (event, context) => {
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
-    if (user_id === undefined) throw 'pathParameters missing'
+    if (user_id === undefined) throw 'pathParameters missing.'
 
     let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.getByid(user_id))
@@ -373,6 +373,9 @@ const serializeData = (data, update) => {
   dataToSave.message_user = data.message_user ? data.message_user : '' // observations
   dataToSave.cuota = data.cuota ? data.cuota : 60
   dataToSave.date_created = date
+  dataToSave.flete = data.flete ? data.flete : 25.00
+  dataToSave.desaduanaje = data.desaduanaje ? data.desaduanaje : 30.00
+  
 
   return dataToSave
 }

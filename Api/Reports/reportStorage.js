@@ -49,7 +49,7 @@ const entryPackageTotal = date => {
 const packagesOnRouteTotal = () => {
   const query = `SELECT count(package_id) as tota_paquetes, sum(weight) as total_libras, sum(total_a_pagar) as total_por_cobrar from paquetes A
                 inner join clientes B on A.client_id = B.client_id
-                where B.entrega = 'Entrega a Domicilio'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' AND A.status != 'Entregado.'`;
+                where B.entrega = 'Entrega a Domicilio'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' AND A.status != 'Entregado'`;
   console.log(query, "query 11");
   return query;
 };
@@ -57,7 +57,7 @@ const packagesOnRouteTotal = () => {
 const packagesOnRoute = _ => {
   const query = `select * from paquetes A
                 inner join clientes B on A.client_id = B.client_id
-                where B.entrega = 'Entrega a Domicilio' AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' AND A.status != 'Entregado.'`;
+                where B.entrega = 'Entrega a Domicilio' AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' AND A.status != 'Entregado'`;
 
   return query;
 };
@@ -73,7 +73,7 @@ const packageInWarehouse = () => {
 const packageInWarehouseTotal = () => {
   const query = `SELECT count(package_id) as tota_paquetes, sum(weight) as total_libras, sum(total_a_pagar) as total_por_cobrar from paquetes A
                   inner join clientes B on A.client_id = B.client_id
-                  where B.entrega = 'Entrega en Traestodo'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' ;`;
+                  where B.entrega = 'Entrega en Prime'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado' ;`;
   return query;
 };
 
@@ -105,6 +105,24 @@ const stateAccount = (client_id, package_id) => {
   return query;
 };
 
+const reportByMaster = (master, poliza) => {
+  
+  let _poliza =  poliza ? ` AND p.poliza = ${poliza}` : ''
+  const query = `SELECT package_id,client_id,weight,tasa,tracking,status, importe, guia, dai, cif, total_a_pagar, costo_producto, poliza, master
+                 FROM paquetes p WHERE p.master = '${master}' ${_poliza} `
+  
+  return query
+}
+
+const byMasterTotal = (master) => {
+  
+  const query = `SELECT count(package_id) as total_paquetes, sum(weight) as total_libras, sum(importe) as importe, sum(cif) as cif, sum(costo_producto) as costo, sum(dai) as dai,
+                 sum(total_a_pagar) as total_a_pagar
+                 FROM paquetes p WHERE p.master = '${master}'`
+  
+  return query
+}
+
 module.exports = {
   read: readList,
   totalsByDate,
@@ -114,5 +132,7 @@ module.exports = {
   packageInWarehouseTotal,
   packagesOnRoute,
   packagesOnRouteTotal,
-  stateAccount
+  stateAccount,
+  reportByMaster,
+  byMasterTotal
 };

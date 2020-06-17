@@ -42,7 +42,8 @@ const read = (page, params) => {
     _inner += ` INNER JOIN paquetes C on B.client_id = C.client_id AND C.package_id = ${params.package_id} `
   }
 
-  const query = `SELECT A.id, A.name, A.email, A.type, A.activo, B.client_id, B.phone, B.entrega, B.cuota, B.date_created, B.preferences, B.message_user, B.nit, B.main_address
+  const query = `SELECT A.id, A.name, A.email, A.type, A.activo, B.client_id, B.phone, B.entrega, B.cuota, B.date_created, B.preferences, B.message_user,
+                  B.nit, B.main_address, B.flete, B.desaduanaje
                   FROM  usuarios A
                   INNER JOIN clientes B on A.id = B.id_usuario
                   ${_inner}
@@ -62,7 +63,7 @@ const detail = user_id => {
 }
 
 const detailByClient = client => {
-  const query = `SELECT A.name, A.email, B.entrega, B.phone, B.nit, B.main_address, B.message_user, B.cuota, B.client_id, A.type as profile
+  const query = `SELECT A.name, A.email, B.entrega, B.phone, B.nit, B.main_address, B.message_user, B.client_id, A.type as profile, B.flete, B.desaduanaje
                  FROM clientes B
                  LEFT JOIN usuarios A on B.id_usuario = A.id
                  WHERE B.client_id = '${client}'`
@@ -86,9 +87,13 @@ const update = (data, user_id) => {
 }
 
 const updateProfile = (data, user_id) => {
-  const query = `UPDATE clientes SET entrega = '${data.entrega}', phone = '${data.phone}', nit = '${data.nit}', main_address = '${data.main_address}',
-                 message_user = '${data.message_user}',
-                 cuota = '${data.cuota}'
+  const query = `UPDATE clientes SET entrega = '${data.entrega}',
+                  phone = '${data.phone}',
+                  nit = '${data.nit}',
+                  main_address = '${data.main_address}',
+                 message_user = '${data.message_user}'
+                 flete = ${data.flete},
+                 desaduanaje = ${data.desaduanaje}
                  WHERE id_usuario = ${parseInt(user_id, 10)};`
   return query
 }

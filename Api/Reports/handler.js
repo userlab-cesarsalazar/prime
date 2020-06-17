@@ -140,3 +140,43 @@ module.exports.stateAccount = async event => {
     return response(400, e.message, null)
   }
 }
+
+module.exports.byMaster = async event => {
+  let master = ''
+  let poliza = ''
+  
+  try {
+    if (event.queryStringParameters && event.queryStringParameters.master) {
+      master = event.queryStringParameters.master
+    }
+    
+    if (event.queryStringParameters && event.queryStringParameters.poliza) {
+        poliza = event.queryStringParameters.poliza
+    }
+    
+    if(!master) return response(400, 'missing params', null)
+    
+    const connection = await mysql.createConnection(dbConfig)
+    const [result] = await connection.execute(storage.reportByMaster(master, poliza))
+    
+    return response(200, result, connection)
+  } catch (e) {
+    return response(400, e.message, null)
+  }
+}
+
+module.exports.byMasterTotal = async event => {
+  try{
+    let master = ''
+    if (event.queryStringParameters && event.queryStringParameters.master) {
+      master = event.queryStringParameters.master
+    }
+    const connection = await mysql.createConnection(dbConfig)
+    const [result] = await connection.execute(storage.byMasterTotal(master))
+    
+    return response(200, result, connection)
+  } catch (e) {
+    return response(400, e.message, null)
+  }
+}
+
