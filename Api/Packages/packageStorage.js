@@ -39,7 +39,7 @@ const detail = package_id => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description,
                  C.contact_name, A.ing_date, A.ent_date, A.status, C.main_address, C.entrega,
                  A.entregado, A.delivery, A.cancelado, A.weight, A.anticipo, A.total_a_pagar,
-                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa
+                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa, A.guia, A.total_iva
                  FROM paquetes A
                  LEFT JOIN paquetes_detail B on A.package_id = B.package_id
                  LEFT JOIN clientes C on A.client_id = C.client_id
@@ -58,7 +58,7 @@ const create = data => {
   }
   
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
-                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa)
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva)
                   VALUES ('${data.tracking}',
                   '${data.client_id}',
                   '${data.weight}',
@@ -74,8 +74,9 @@ const create = data => {
                   '${data.pn_master.master ? data.pn_master.master  : '' }',
                   '${data.pn_master.poliza ? data.pn_master.poliza : '' }',
                   '${data.guia ? data.guia : ''}',
-                  ${data.tasa ? data.tasa : 0.00})`
-  console.log(query,'ee')
+                  ${data.tasa ? data.tasa : 0.00},
+                  ${data.iva ? data.iva : 0.00})`
+  
   return query
 }
 
@@ -102,14 +103,15 @@ const update = (checkPackage, data, date) => {
                   status = '${status}',
                   total_a_pagar = ${data.total},
                   ing_date = '${date}',
-                  category_id = ${data.category_id}
-                  costo_producto = ${data.cost}
+                  category_id = ${data.category_id},
+                  costo_producto = ${data.cost},
                   dai = ${data.dai},
                   cif = ${data.cif},
                   importe = ${data.importe},
-                  master = ${data.master},
-                  poliza = ${data.poliza},
-                  guia = ${data.guia}
+                  master = ${data.pn_master.master},
+                  poliza = ${data.pn_master.poliza},
+                  guia = '${data.guia}',
+                  total_iva = ${data.iva}
                   WHERE package_id = ${parseInt(checkPackage.package_id, 10)};`
 
   return query
@@ -118,15 +120,20 @@ const update = (checkPackage, data, date) => {
 const updateStatus = (data, package_id, date, status) => {
 
   const query = `UPDATE paquetes SET weight = '${data.weight}',
-                  description = '${data.description}', status = '${status}', total_a_pagar = ${total},
+                  description = '${data.description}', status = '${status}', total_a_pagar = ${data.total},
                   ent_date = '${status === 'Entregado' || status === 'Entregado con saldo pendiente' ? date : ''}',
                   delivery = '${data.delivery ? data.delivery : '0'}',
                   entregado = '${data.entregado ? data.entregado : '0'}',
                   cancelado = ${data.cancelado ? data.cancelado : 0},
                   anticipo = '${data.anticipo ? data.anticipo : '0'}',
-                  pending_amount = ${data.pendiente ? data.pendiente : 0}
-                  total: ${data.total}
+                  pending_amount = ${data.pendiente ? data.pendiente : 0},
+                  cif=${data.cif},
+                  dai=${data.dai},
+                  importe=${data.importe},
+                  total_iva = ${data.iva},
+                  guia = '${data.guia}'
                   WHERE package_id = ${parseInt(package_id, 10)};`
+  console.log(query,'q')
   return query
 }
 

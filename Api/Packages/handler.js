@@ -140,6 +140,7 @@ module.exports.update = async (event, context) => {
       const update = await connection.execute(storage.downloadSimple(date, package_id))
     } else {
       console.log('2')
+      console.log(data)
       const update = await connection.execute(storage.updateStatus(data, package_id, date, data.status))
     }
 
@@ -227,8 +228,7 @@ function prepareToSend(user, profile) {
                   Código de Cliente: ${user.client_id} <br />
                   Tracking: ${user.tracking} <br />
                   Peso en Lbs: ${user.weight} <br />
-                  Flete USA/Guatemala: Q.${parseInt(user.cuota)} <br />
-                  Total a Pagar: Q.${parseInt(user.cuota) * parseInt(user.weight)} <br />
+                  Total a Pagar: Q.${user.total} <br />
                 <div>
                 </p>
                 Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
