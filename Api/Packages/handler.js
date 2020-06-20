@@ -233,8 +233,8 @@ function prepareToSend(user, profile) {
                 </p>
                 Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
                  5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
-                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, tus preferencias de entrega las puedes modificar en Primenow.com <br />`,
-      },
+                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, hola@primenowcourier.com <br />`,
+      },       n
     },
   }
   return template
