@@ -210,13 +210,13 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  sendMessage:
-    handler: handler.sendSMSEvent
+  sendMessagePrime:
+    handler: handler.sendPrime
     timeout: 30
     events:
       - sns:
-          topicName: sms-prime
-          displayName: sms-prime
+          topicName: sms-pn
+          displayName: sms-pn
     layers:
        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 

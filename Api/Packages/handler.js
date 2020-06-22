@@ -60,7 +60,7 @@ module.exports.detail = async (event, context) => {
 module.exports.create = async (event, context) => {
   try {
     let data = JSON.parse(event.body)
-    if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter'
+    if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
 
     data.ing_date = date
 
@@ -90,7 +90,7 @@ module.exports.create = async (event, context) => {
       }
       const params = {
         Message: JSON.stringify(payload),
-        TopicArn: 'arn:aws:sns:us-east-1:' + process.env['ACCOUNT_ID'] + ':send-sms-event',
+        TopicArn: 'arn:aws:sns:us-east-1:' + process.env['ACCOUNT_ID'] + ':sms-pn',
       }
 
       await new Promise((resolve, reject) => {
@@ -233,14 +233,14 @@ function prepareToSend(user, profile) {
                 </p>
                 Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
                  5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
-                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, hola@primenowcourier.com <br />`,
+                 Envíanos un correo si quieres que te enviemos tu paquete a domicilio, hola@primenowcourier.com <br /> 22193432 - 33481631`,
       },
     },
   }
   return template
 }
 
-module.exports.sendSMSEvent = async event => {
+module.exports.sendPrime = async event => {
   try {
     const uuidv1 = require('uuid/v1')
     const id = uuidv1()
@@ -257,7 +257,7 @@ module.exports.sendSMSEvent = async event => {
 
     if (!params) throw 'no_params'
 
-    const SMS = `PRIMENOW, le informa que usted Codigo de Cliente: ${params.data.client_id} , tiene un paquete con el numero de tracking ${params.data.tracking} en nuestras oficinas. Contactenos al telefono 2219-3432`
+    const SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking} y Codigo de Cliente: ${params.data.client_id}, en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
     const phone = `502${params.profile[0].phone}`
 
     let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
