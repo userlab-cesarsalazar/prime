@@ -5,7 +5,8 @@
   "main": "handler.js",
   "author": "Cesar Salazar",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "export AWS_PROFILE=traestodo && serverless deploy"
   },
   "license": "ISC",
   "dependencies": {
