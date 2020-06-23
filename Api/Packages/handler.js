@@ -67,7 +67,6 @@ module.exports.create = async (event, context) => {
     let connection = await mysql.createConnection(dbConfig)
 
     const [checkPackage] = await connection.execute(storage.findByTracking(data))
-
     if (checkPackage.length > 0) {
       //update
       const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
@@ -81,9 +80,14 @@ module.exports.create = async (event, context) => {
     const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
 
     if (!data.status || data.status !== 'Registrado') {
+      
       let template = prepareToSend(data, userData)
-      await notifyEmail(AWS, template)
-
+      const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      if(validate.test(String(userData[0].email).toLowerCase() )){
+        console.log('good')
+        await notifyEmail(AWS, template)
+      }
+      
       let payload = {
         profile: userData,
         data: data,
