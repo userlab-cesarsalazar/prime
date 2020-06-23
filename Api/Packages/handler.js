@@ -84,7 +84,6 @@ module.exports.create = async (event, context) => {
       let template = prepareToSend(data, userData)
       const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if(validate.test(String(userData[0].email).toLowerCase() )){
-        console.log('good')
         await notifyEmail(AWS, template)
       }
       
