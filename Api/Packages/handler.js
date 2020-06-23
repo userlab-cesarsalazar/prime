@@ -226,7 +226,7 @@ function prepareToSend(user, profile) {
     body: {
       Html: {
         Charset: 'UTF-8',
-        Data: `<p><br />Queríamos informarle que ya tenemos un paquete listo para ser entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
+        Data: `<p><br />Queríamos informarle que ya tenemos un paquete listo en nuestras oficinas, puede ser enviado a domicilio o entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
                 <div>
                   Código de Cliente: ${user.client_id} <br />
                   Tracking: ${user.tracking} <br />
