@@ -91,7 +91,7 @@ const updateProfile = (data, user_id) => {
                   phone = '${data.phone}',
                   nit = '${data.nit}',
                   main_address = '${data.main_address}',
-                 message_user = '${data.message_user}'
+                 message_user = '${data.message_user}',
                  flete = ${data.flete},
                  desaduanaje = ${data.desaduanaje}
                  WHERE id_usuario = ${parseInt(user_id, 10)};`
