@@ -39,7 +39,7 @@ const detail = package_id => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description,
                  C.contact_name, A.ing_date, A.ent_date, A.status, C.main_address, C.entrega,
                  A.entregado, A.delivery, A.cancelado, A.weight, A.anticipo, A.total_a_pagar,
-                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa, A.guia, A.total_iva
+                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa, A.guia, A.total_iva, A.poliza
                  FROM paquetes A
                  LEFT JOIN paquetes_detail B on A.package_id = B.package_id
                  LEFT JOIN clientes C on A.client_id = C.client_id
