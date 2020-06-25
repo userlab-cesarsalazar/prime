@@ -318,7 +318,6 @@ const cognitoSetGroup = (name, email, type) => {
   AWS.config.update({
     credentials: new AWS.CognitoIdentityCredentials({ IdentityPoolId: process.env['IDENTITY'] }),
   })
-
   let cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider({
     credentials: { accessKeyId: process.env['ACCESS_KEY'], secretAccessKey: process.env['SECRET_KEY'] },
   })
