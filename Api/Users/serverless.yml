@@ -180,7 +180,7 @@ functions:
               - X-Amz-Security-Token
               - X-Amz-User-Agent
           authorizer:
-            arn: "arn:aws:cognito-idp:us-east-1:097890312429:userpool/us-east-1_V3Jt8F0yn"
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
       layers:
         - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
@@ -214,6 +214,10 @@ functions:
 
   UserPostConfirmation:
     handler: handler.postConfirmation
+    events:
+      - http:
+          path: postConfirmation
+          method: get
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 

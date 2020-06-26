@@ -90,19 +90,8 @@ module.exports.create = async (event, context) => {
     const save = await connection.execute(storage.post(obj))
     let [client_id] = await connection.execute(storage.findMaxId())
     //save the initial
-    let initial = client_id[0].client_id[0]
-    let secondPart = client_id[0].client_id.replace(/[A-Z]/g,'').length
-    let maximum = parseInt(client_id[0].client_id.replace(/[A-Z]/g,'')) + 1
-    let partNumeric = maximum.toString().length
-    partNumeric = secondPart - partNumeric
-    let _client = ''
-    let _var = ''
-    for (let i = 0 ; i < partNumeric; i++ ){
-      _var += `0`
-      _client = `${initial}${_var}${maximum}`
-    }
+    const _client = await generateID(connection)
     obj.client_id = _client
-    
     if (save) await connection.execute(storage.createProfile(obj, save[0].insertId))
 
     return response(200, data, connection)
@@ -297,12 +286,17 @@ module.exports.postConfirmation = async (event, context) => {
 
     console.log(sql, 'sql')
     const connection = await mysql.createConnection(dbConfig)
+  
+    const client = await generateID(connection)
+    
+    console.log(client,'client')
     const [users] = await connection.execute(sql)
+  
 
-    const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email )
-                  VALUES ('Entrega en PRIME','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}' )`
+    const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email, client_id )
+                  VALUES ('Entrega en Prime','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}','${client}' )`
 
-    const [profile] = await connection.execute(query)
+     await connection.execute(query)
 
     await cognitoSetGroup(event.request.userAttributes.name, event.request.userAttributes.email, 'cliente')
 
@@ -376,4 +370,26 @@ const serializeData = (data, update) => {
   
 
   return dataToSave
+}
+
+const generateID = async (connection) => {
+  try {
+    let [client_id] = await connection.execute(storage.findMaxId())
+    //save the initial
+    console.log(client_id,'client_id')
+    let initial = client_id[0].client_id[0]
+    let secondPart = client_id[0].client_id.replace(/[A-Z]/g,'').length
+    let maximum = parseInt(client_id[0].client_id.replace(/[A-Z]/g,'')) + 1
+    let partNumeric = maximum.toString().length
+    partNumeric = secondPart - partNumeric
+    let _client = ''
+    let _var = ''
+    for (let i = 0 ; i < partNumeric; i++ ){
+      _var += `0`
+      _client = `${initial}${_var}${maximum}`
+    }
+    return _client
+  }catch (e) {
+    console.log(e,'ee')
+  }
 }
