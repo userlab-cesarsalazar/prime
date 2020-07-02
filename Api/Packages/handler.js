@@ -220,7 +220,7 @@ module.exports.transfer = async (event, context) => {
 function prepareToSend(user, profile) {
   const template = {
     mailList: [profile[0].email],
-    from: 'hola@primenowcourier.com',
+    from: 'info@primenowcourier.com',
     subject: `Paquete listo para entrega!!`,
     bcc: ['cesar.augs@gmail.com'],
     body: {
