@@ -113,11 +113,11 @@ const update = (checkPackage, data, date) => {
                   dai = ${data.dai},
                   cif = ${data.cif},
                   importe = ${data.importe},
-                  master = ${data.pn_master.master},
-                  poliza = ${data.pn_master.poliza},
+                  master = '${data.pn_master.master}',
+                  poliza = '${data.pn_master.poliza}',
                   guia = '${data.guia}',
                   total_iva = ${data.iva}
-                  WHERE package_id = ${parseInt(checkPackage.package_id, 10)};`
+                  WHERE package_id = ${checkPackage.package_id};`
 
   return query
 }

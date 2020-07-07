@@ -67,11 +67,11 @@ module.exports.create = async (event, context) => {
     let connection = await mysql.createConnection(dbConfig)
 
     const [checkPackage] = await connection.execute(storage.findByTracking(data))
-    if (checkPackage.length > 0) {
+    if (checkPackage.length > 0) { console.log('update', data)
       //update
       const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
       if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
-    } else {
+    } else {console.log('create', data)
       //create
       const [save] = await connection.execute(storage.post(data))
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
