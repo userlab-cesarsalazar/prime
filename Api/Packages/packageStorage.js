@@ -136,9 +136,10 @@ const updateStatus = (data, package_id, date, status) => {
                   dai=${data.dai},
                   importe=${data.importe},
                   total_iva = ${data.iva},
-                  guia = '${data.guia}'
+                  guia = '${data.guia}',
+                  poliza = '${data.poliza}'
                   WHERE package_id = ${parseInt(package_id, 10)};`
-  console.log(query,'q')
+  
   return query
 }
 
