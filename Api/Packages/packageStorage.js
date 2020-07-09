@@ -221,6 +221,11 @@ const closeGuide = (data, date) => {
   return query
 }
 
+const getGuides = ( data ) => {
+  const query = `SELECT * FROM guides`
+  return query
+}
+
 module.exports = {
   get: read,
   post: create,
@@ -237,5 +242,6 @@ module.exports = {
   downloadSimple,
   checkGuide,
   closeGuide,
-  postGuide
+  postGuide,
+  getGuides
 }

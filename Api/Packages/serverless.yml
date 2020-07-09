@@ -210,6 +210,28 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
+  getGuides:
+    handler: handler.getGuides
+    timeout: 30
+    events:
+      - http:
+          path: packages/guides
+          method: get
+          cors:
+          origin: "*"
+          allowCredentials: true
+          headers:
+            - Content-Type
+            - X-Amz-Date
+            - Authorization
+            - X-Api-Key
+            - X-Amz-Security-Token
+            - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
   sendMessagePrime:
     handler: handler.sendPrime
     timeout: 30

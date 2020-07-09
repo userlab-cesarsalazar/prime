@@ -168,11 +168,16 @@ module.exports.byMaster = async event => {
 module.exports.byMasterTotal = async event => {
   try{
     let master = ''
+    let poliza = ''
+    
     if (event.queryStringParameters && event.queryStringParameters.master) {
       master = event.queryStringParameters.master
     }
+    if (event.queryStringParameters && event.queryStringParameters.poliza) {
+      poliza = event.queryStringParameters.poliza
+    }
     const connection = await mysql.createConnection(dbConfig)
-    const [result] = await connection.execute(storage.byMasterTotal(master))
+    const [result] = await connection.execute(storage.byMasterTotal(master, poliza))
     
     return response(200, result, connection)
   } catch (e) {

@@ -107,18 +107,21 @@ const stateAccount = (client_id, package_id) => {
 
 const reportByMaster = (master, poliza) => {
   
-  let _poliza =  poliza ? ` AND p.poliza = ${poliza}` : ''
-  const query = `SELECT package_id,client_id,weight,tasa,tracking,status, importe, guia, dai, cif, total_a_pagar, costo_producto, poliza, master
+  let _poliza =  poliza ? ` AND p.poliza = '${poliza}'` : ''
+  const query = `SELECT package_id,client_id,weight,tasa,tracking,status, importe, guia, dai, cif, total_a_pagar, costo_producto, poliza, master, total_iva
                  FROM paquetes p WHERE p.master = '${master}' ${_poliza} `
   
   return query
 }
 
-const byMasterTotal = (master) => {
-  
-  const query = `SELECT count(package_id) as total_paquetes, sum(weight) as total_libras, sum(importe) as importe, sum(cif) as cif, sum(costo_producto) as costo, sum(dai) as dai,
-                 sum(total_a_pagar) as total_a_pagar
-                 FROM paquetes p WHERE p.master = '${master}'`
+const byMasterTotal = (master, poliza) => {
+  let _poliza =  poliza ? ` AND p.poliza = '${poliza}'` : ''
+  const query = `SELECT count(package_id) as total_paquetes,
+                 sum(weight) as total_libras,
+                 sum(dai) as sub_total,
+                 sum(total_iva ) as iva,
+                 sum(costo_producto ) as costo_producto
+                 FROM paquetes p WHERE p.master = '${master}' ${_poliza}`
   
   return query
 }
