@@ -65,7 +65,7 @@ const packagesOnRoute = _ => {
 const packageInWarehouse = () => {
   const query = `select A.*, B.entrega from paquetes A
                   inner join clientes B on A.client_id = B.client_id
-                  where B.entrega = 'Entrega en Traestodo'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado'
+                  where B.entrega = 'Entrega en Prime'  AND (ent_date = '' OR ent_date ='0000-00-00') AND A.status != 'Registrado'
                   ORDER BY A.client_id DESC;`;
   return query;
 };
