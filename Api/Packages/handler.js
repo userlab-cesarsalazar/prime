@@ -204,6 +204,7 @@ module.exports.updateStatus = async (event, context) => {
 module.exports.transfer = async (event, context) => {
   try {
     let data = JSON.parse(event.body)
+    
     let connection = await mysql.createConnection(dbConfig)
 
     const [checkPackage] = await connection.execute(storage.transfer(data))
