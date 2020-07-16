@@ -76,7 +76,7 @@ module.exports.create = async (event, context) => {
       const [save] = await connection.execute(storage.post(data))
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
     }
-    /*
+    
     const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
 
     if (!data.status || data.status !== 'Registrado') {
@@ -107,7 +107,7 @@ module.exports.create = async (event, context) => {
           }
         })
       })
-    }*/
+    }
 
     return response(200, data, connection)
   } catch (e) {
