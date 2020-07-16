@@ -222,8 +222,12 @@ const closeGuide = (data, date) => {
   return query
 }
 
-const getGuides = ( data ) => {
-  const query = `SELECT * FROM guides`
+const getGuides = ( ) => {
+  
+  const query = `SELECT p.master as master, p.poliza as poliza, g.status as status, COUNT(p.package_id) as paquetes
+                  FROM guides g
+                  LEFT JOIN paquetes p on g.master = p.master AND g.poliza = p.poliza
+                  GROUP by g.master, g.poliza `
   return query
 }
 
