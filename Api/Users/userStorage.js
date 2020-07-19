@@ -124,7 +124,7 @@ const getPackage = id => {
 }
 
 const findMaxId = () => {
-  const query = `SELECT id, client_id FROM clientes WHERE id = ( SELECT MAX(id) FROM clientes )`;
+  const query = `SELECT id_usuario as id , client_id FROM clientes WHERE id_usuario = ( SELECT MAX(id_usuario ) FROM clientes )`;
   
   return query
 }

@@ -13,7 +13,7 @@ const readList = (date, page) => {
     where = `WHERE ent_date = '${date}'`;
   }
 
-  const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
+  const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight, A.guia
                 FROM  paquetes A
                 LEFT JOIN clientes C on A.client_id = C.client_id
                 ${where}
