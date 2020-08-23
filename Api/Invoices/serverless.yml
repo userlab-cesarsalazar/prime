@@ -1,0 +1,149 @@
+service: Invoice-pn
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'pn'}
+  region: us-east-1
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${file(../../commons/credentials.json):${self:provider.stage}.dbHost}
+    DB_PORT: ${file(../../commons/credentials.json):${self:provider.stage}.dbPort}
+    DB_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.dbPassword}
+    DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
+    DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
+    URL_DEV_FACT: ${file(../../commons/credentials.json):${self:provider.stage}.url_ecofactura_dev}
+    CLIENT_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_client_dev}
+    USER_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_user_dev}
+    PASSWORD_FACT_DEV_ID: ${file(../../commons/credentials.json):${self:provider.stage}.fact_password_dev}
+    NIT_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_nit_dev}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+        - ses:SendEmail
+        - SNS:Publish
+      Resource: "*"
+
+package:
+  include:
+    - ../../commons/**
+  exclude:
+    - node_modules/**
+
+functions:
+  invoicesCreate:
+    handler: handler.create
+    timeout: 30
+    events:
+      - http:
+          path: invoices
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  getInvoices:
+    handler: handler.documents
+    timeout: 30
+    events:
+      - http:
+          path: invoices
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  getInvoice:
+    handler: handler.document
+    timeout: 30
+    events:
+      - http:
+          path: invoices/{id}
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  getPDF:
+    handler: handler.documentPDF
+    timeout: 30
+    events:
+      - http:
+          path: invoices/print/{id}
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  getDocumentByClient:
+    handler: handler.documentByClient
+    timeout: 30
+    events:
+      - http:
+          path: invoices/client/{id}
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
