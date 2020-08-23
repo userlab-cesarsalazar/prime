@@ -179,7 +179,7 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT D.* FROM documents D LIMIT 25`
+  let query = `SELECT D.* FROM documents D LIMIT 25 ORDER By id DESC`
   switch (params.type) {
     case 'client':
       query = `SELECT  D.*
