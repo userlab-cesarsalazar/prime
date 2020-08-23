@@ -130,9 +130,11 @@ const makeRequestSoap = async (SOAP, url, data) => {
   let resp = await new Promise(((resolve, reject) => {
     SOAP.createClient(url, function(err, Client) {
       Client.Execute(data, function(err, result) {
-        if(err)
+        if(err) {
+          console.log(err,'err')
           reject(err)
-        
+        }
+        console.log(result,'result')
         resolve(result)
       });
     });
@@ -176,9 +178,28 @@ const getCorrelative = () => {
   return query
 }
 
-const get = () => {
-  const query = `SELECT * FROM documents LIMIT 25`;
+const get = (params) => {
+  let query = `SELECT D.* FROM documents D LIMIT 25`
+  switch (params.type) {
+    case 'client':
+      query = `SELECT  D.*
+                FROM documents D
+                INNER JOIN clientes C  on D.client_id = C.client_id
+                WHERE D.client_id = '${params.id}'`
+      break
+    case 'control':
+      query = `SELECT  D.*
+                FROM documents D
+                WHERE D.num_control = '${params.id}'`
+      break
+    case 'sat_number':
+      query = `SELECT  D.*
+                FROM documents D
+                WHERE D.num_serie_sat = '${params.id}'`
+      break
+  }
   
+  console.log(query)
   return query
 }
 
@@ -193,7 +214,27 @@ const getDetailPDF = (id) => {
 }
 
 const getDocumentByClient = (id) => {
-  const query = `SELECT master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva FROM paquetes WHERE client_id = '${id}' AND ent_date = '0000-00-00'`;
+  const query = `SELECT master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva
+                  FROM paquetes
+                  WHERE client_id = '${id}' AND ent_date = '0000-00-00'`;
+  return query
+}
+
+const getClientInfo = (id) => {
+  const query = `SELECT contact_name, client_name, email, phone, nit, main_address
+                 FROM clientes
+                 WHERE client_id = '${id}'`;
+  return query
+}
+
+
+const invoiceAnnul = (data, date, id) => {
+  const query = `UPDATE documents SET reason = '${data.reason}',
+                                      annulation_date = '${date}',
+                                      annul_by = '${data.annulled_by}',
+                                      status = 3
+                                      WHERE id = ${id}`
+  console.log(query)
   return query
 }
 
@@ -214,5 +255,7 @@ module.exports = {
   get,
   getDetail,
   getDetailPDF,
-  getDocumentByClient
+  getDocumentByClient,
+  invoiceAnnul,
+  getClientInfo
 }

@@ -19,6 +19,8 @@
     "serverless-offline": "^4.10.3",
     "uuid": "^3.3.2",
     "bcryptjs": "^2.4.3",
-    "jwt-decode": "^2.2.0"
+    "jwt-decode": "^2.2.0",
+    "soap": "^0.32.0",
+    "xml2js": "^0.4.23"
   }
 }

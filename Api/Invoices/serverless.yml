@@ -16,6 +16,7 @@ provider:
     DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
     DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
     URL_DEV_FACT: ${file(../../commons/credentials.json):${self:provider.stage}.url_ecofactura_dev}
+    URL_DEV_FACT_CANCEL: ${file(../../commons/credentials.json):${self:provider.stage}.url_ecofactura_dev_cancel}
     CLIENT_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_client_dev}
     USER_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_user_dev}
     PASSWORD_FACT_DEV_ID: ${file(../../commons/credentials.json):${self:provider.stage}.fact_password_dev}
@@ -126,7 +127,7 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  getDocumentByClient:
+  documentByClient:
     handler: handler.documentByClient
     timeout: 30
     events:
@@ -147,3 +148,26 @@ functions:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  documentCancel:
+    handler: handler.annul
+    timeout: 30
+    events:
+      - http:
+          path: invoices/{id}/cancel
+          method: put
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+

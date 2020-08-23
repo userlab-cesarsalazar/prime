@@ -96,10 +96,22 @@ module.exports.create = async (event, context) => {
 
 module.exports.documents = async (event) => {
   try {
+    let params = {
+      id:null,
+      type:null
+    }
+    
+    if (event.queryStringParameters && event.queryStringParameters.type) {
+      params.type = event.queryStringParameters.type
+    }
   
+    if (event.queryStringParameters && event.queryStringParameters.id) {
+      params.id = event.queryStringParameters.id
+    }
+    
     const connection = await mysql.createConnection(dbConfig)
     
-    const [documents] =  await connection.execute(storage.get())
+    const [documents] =  await connection.execute(storage.get(params))
   
     return response(200, documents, connection)
   }catch (e) {
@@ -151,8 +163,59 @@ module.exports.documentByClient = async (event) => {
     
     const [documents] =  await connection.execute(storage.getDocumentByClient(client))
     
-    return response(200, documents, connection)
+    if(documents.length === 0)
+      throw Error('This client does not have packages to generate an Invoice')
+    
+    const [client_info] =  await connection.execute(storage.getClientInfo(client))
+    
+    let data = {
+      packages : documents,
+      client : client_info[0]
+    }
+    
+    return response(200, data, connection)
   }catch (e) {
+    return response(400, e.message, null)
+  }
+}
+
+module.exports.annul = async (event) => {
+  try {
+    
+    let data = JSON.parse(event.body)
+    //id document
+    const id = event.pathParameters && event.pathParameters.id ? event.pathParameters.id : undefined
+    const validation = storage.isEmpty(data)
+    if ( validation ) throw `missing_parameter. ${validation}`
+    
+    const connection = await mysql.createConnection(dbConfig)
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const [documents] =  await connection.execute(storage.getDetail(id))
+    
+    if(documents.length === 0 ||  !documents[0].num_authorization_sat)
+      throw new Error (`Error the autorization number is required`)
+    
+    const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
+    
+    /*
+    let invoiceData = {
+      Cliente: process.env['CLIENT_FACT_DEV'],
+      Usuario:process.env['USER_FACT_DEV'],
+      Clave: process.env['PASSWORD_FACT_DEV_ID'],
+      Nitemisor: process.env['NIT_FACT_DEV'],
+      NumAutorizacionUUID: documents[0].num_authorization_sat,
+      MotivoAnulacion: data.reason
+    }
+      const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
+      if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
+      const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
+    */
+    /** TODO
+     * update the status packages
+     */
+    return response(200, annul, connection)
+  } catch (e) {
+    console.log(e)
     return response(400, e.message, null)
   }
 }
