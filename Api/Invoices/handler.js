@@ -220,6 +220,18 @@ module.exports.annul = async (event) => {
   }
 }
 
+module.exports.payments = async () => {
+  try {
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [documents] =  await connection.execute(storage.payments())
+    
+    return response(200, documents, connection)
+  }catch (e) {
+    return response(400, e.message, null)
+  }
+}
+
 
 
 

@@ -227,17 +227,20 @@ const getClientInfo = (id) => {
   return query
 }
 
-
 const invoiceAnnul = (data, date, id) => {
   const query = `UPDATE documents SET reason = '${data.reason}',
                                       annulation_date = '${date}',
                                       annul_by = '${data.annulled_by}',
                                       status = 3
                                       WHERE id = ${id}`
-  console.log(query)
+
   return query
 }
-
+const payments = () => {
+  const query = `SELECT id, name FROM primedb.payment_types WHERE status = 'ACTIVE';
+`;
+  return query
+}
 
 module.exports = {
   post: create,
@@ -257,5 +260,6 @@ module.exports = {
   getDetailPDF,
   getDocumentByClient,
   invoiceAnnul,
-  getClientInfo
+  getClientInfo,
+  payments
 }
