@@ -134,7 +134,6 @@ const makeRequestSoap = async (SOAP, url, data) => {
           console.log(err,'err')
           reject(err)
         }
-        console.log(result,'result')
         resolve(result)
       });
     });
@@ -179,7 +178,7 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT D.* FROM documents D LIMIT 25 ORDER By id DESC`
+  let query = `SELECT D.* FROM documents D ORDER By id DESC LIMIT 25`
   switch (params.type) {
     case 'client':
       query = `SELECT  D.*
@@ -198,8 +197,6 @@ const get = (params) => {
                 WHERE D.num_serie_sat = '${params.id}'`
       break
   }
-  
-  console.log(query)
   return query
 }
 
@@ -227,6 +224,12 @@ const getClientInfo = (id) => {
   return query
 }
 
+const products = () => {
+  const query = `SELECT id, name, price, description_sat
+                  FROM products;`;
+  return query
+}
+
 const invoiceAnnul = (data, date, id) => {
   const query = `UPDATE documents SET reason = '${data.reason}',
                                       annulation_date = '${date}',
@@ -236,9 +239,50 @@ const invoiceAnnul = (data, date, id) => {
 
   return query
 }
+
 const payments = () => {
   const query = `SELECT id, name FROM primedb.payment_types WHERE status = 'ACTIVE';
 `;
+  return query
+}
+
+const createReconciliation = (document_id, date) => {
+  const query = `INSERT INTO account_reconciliation
+                 (document_id, created_at, status)
+                  VALUES(${document_id}, '${date}', 'PENDING');`;
+  return query
+}
+
+const updateReconciliation = (data, id, date) => {
+  const query = `UPDATE account_reconciliation
+                 SET recorded_at='${date}', recorded_by='${data.recorded_by}', status='DONE'
+                 WHERE document_id = ${id};`;
+  return query
+}
+const getReconciliation = (params) => {
+  
+  let query = `SELECT D.* FROM documents D
+                 INNER JOIN account_reconciliation a on D.id = a.document_id
+                 WHERE D.status in (2)`
+  
+  switch (params.type) {
+    case 'client':
+      query = `SELECT  D.*
+                FROM documents D
+                INNER JOIN clientes C  on D.client_id = C.client_id
+                INNER JOIN account_reconciliation a on D.id = a.document_id
+                WHERE D.client_id = '${params.id}' AND D.status in (2)`
+      break
+    case 'date':
+      query = `SELECT  D.*
+                FROM documents D
+                INNER JOIN clientes C  on D.client_id = C.client_id
+                INNER JOIN account_reconciliation a on D.id = a.document_id
+                WHERE a.recorded_at >= '${params.start}' AND a.recorded_at <= '${params.end}'
+                AND D.status in (2)`
+      break
+  }
+  
   return query
 }
 
@@ -261,5 +305,9 @@ module.exports = {
   getDocumentByClient,
   invoiceAnnul,
   getClientInfo,
-  payments
+  payments,
+  createReconciliation,
+  updateReconciliation,
+  getReconciliation,
+  products
 }

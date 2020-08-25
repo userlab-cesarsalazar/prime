@@ -80,6 +80,8 @@ module.exports.create = async (event, context) => {
     
     await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
     await connection.execute(storage.updatedDocument(serializerResponse, create.insertId))
+    //create account
+    await connection.execute(storage.createReconciliation(create.insertId, date))
   
     if(serializerResponse.error)
       throw new Error(JSON.stringify(serializerResponse.error))
@@ -168,9 +170,12 @@ module.exports.documentByClient = async (event) => {
     
     const [client_info] =  await connection.execute(storage.getClientInfo(client))
     
+    const [services] = await connection.execute(storage.products())
+    
     let data = {
       packages : documents,
-      client : client_info[0]
+      client : client_info[0],
+      services: services
     }
     
     return response(200, data, connection)
@@ -195,25 +200,28 @@ module.exports.annul = async (event) => {
     if(documents.length === 0 ||  !documents[0].num_authorization_sat)
       throw new Error (`Error the autorization number is required`)
     
-    const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
-    
-    /*
     let invoiceData = {
       Cliente: process.env['CLIENT_FACT_DEV'],
       Usuario:process.env['USER_FACT_DEV'],
       Clave: process.env['PASSWORD_FACT_DEV_ID'],
       Nitemisor: process.env['NIT_FACT_DEV'],
-      NumAutorizacionUUID: documents[0].num_authorization_sat,
-      MotivoAnulacion: data.reason
+      Numautorizacionuuid: documents[0].num_authorization_sat,
+      Motivoanulacion: data.reason
     }
+    
       const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
       if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
       const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
-    */
+    
+    /** TODO
+     * Save Logs
+     */
+  
+    const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
     /** TODO
      * update the status packages
      */
-    return response(200, annul, connection)
+    return response(200, json, connection)
   } catch (e) {
     console.log(e)
     return response(400, e.message, null)
@@ -232,6 +240,62 @@ module.exports.payments = async () => {
   }
 }
 
+/// Accounts reconciliation Section
+
+module.exports.updateReconciliation = async (event) => {
+  
+  try{
+    let data = JSON.parse(event.body)
+    
+    const validation = storage.isEmpty(data)
+    if ( validation ) throw `missing_parameter. ${validation}`
+    
+    const id = event.pathParameters && event.pathParameters.id ? event.pathParameters.id : undefined
+    
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    
+    const [update] = await connection.execute(storage.updateReconciliation(data, id, date))
+    
+    if(!update)
+      throw Error('Error creating the record')
+    
+    return response(200, update, connection)
+    
+  }catch (e) {
+    console.log(e)
+    return response(400, e.message, null)
+  }
+}
+
+module.exports.reconciliation = async (event) => {
+  try{
+    
+    let params = {
+      id:null,
+      type:null
+    }
+  
+    if (event.queryStringParameters && event.queryStringParameters.type) {
+      params.type = event.queryStringParameters.type
+    }
+  
+    if (event.queryStringParameters && event.queryStringParameters.id) {
+      params.id = event.queryStringParameters.id
+    }
+    if(params.type === 'date'){
+      params.start = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 00:00:00')
+      params.end = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 23:59:99')
+    }
+    const connection = await mysql.createConnection(dbConfig)
+    const [accounts] = await connection.execute(storage.getReconciliation(params))
+    return response(200, accounts, connection)
+  }catch (e) {
+    console.log(e)
+    return response(400, e.message, null)
+  }
+}
 
 
 
