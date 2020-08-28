@@ -1,3 +1,5 @@
+const accounting = require('accounting-js')
+
 const buildXML = (data, moment) => {
   //build XML Header
   let _xml_header = `<stdTWS xmlns="FEL">
@@ -20,6 +22,9 @@ const buildXML = (data, moment) => {
   //build XML detail
   let line = 1
   let _xml_detail = ``
+  let oea = ''
+  let _dai =0
+  let _iva =0
   data.items.forEach( (x)=> {
     let str = `<stdTWS.stdTWSCIt.stdTWSDIt>
                   <TrnLiNum>${line}</TrnLiNum>
@@ -33,10 +38,36 @@ const buildXML = (data, moment) => {
                   <TrnArtImpAdiCod>0</TrnArtImpAdiCod>
                   <TrnArtImpAdiUniGrav>0</TrnArtImpAdiUniGrav>
                  </stdTWS.stdTWSCIt.stdTWSDIt>`
-    
+     oea = x.item;
+     _dai += x.dai
+     _iva += parseFloat(x.total_iva)
     _xml_detail = _xml_detail + str
   })
-  _xml_detail = `<stdTWSD>${_xml_detail}</stdTWSD></stdTWS>`
+  _xml_detail = `<stdTWSD>${_xml_detail}</stdTWSD>
+                 <stdTWSCA1>
+                    <stdTWS.stdTWSCA1.stdTWSCA1It>
+                        <Columna1>${oea} IVA</Columna1>
+                        <Columna2>Texto Col 2</Columna2>
+                        <Columna3>Texto Col 3</Columna3>
+                        <Columna4>Texto Col 4</Columna4>
+                        <Columna5>${accounting.toFixed(_iva, 2)}</Columna5>
+                        <Columna6>Texto Col 6</Columna6>
+                        <Columna7>Texto Col 7</Columna7>
+                        <Columna8>Texto Col 8</Columna8>
+                    </stdTWS.stdTWSCA1.stdTWSCA1It>
+                    <stdTWS.stdTWSCA1.stdTWSCA1It>
+                        <Columna1>${oea} DAI</Columna1>
+                        <Columna2>Texto Col 2</Columna2>
+                        <Columna3>Texto Col 3</Columna3>
+                        <Columna4>Texto Col 4</Columna4>
+                        <Columna5>${accounting.toFixed(_dai, 2)}</Columna5>
+                        <Columna6>Texto Col 6</Columna6>
+                        <Columna7>Texto Col 7</Columna7>
+                        <Columna8>Texto Col 8</Columna8>
+                     </stdTWS.stdTWSCA1.stdTWSCA1It>
+                    </stdTWSCA1>
+                  </stdTWS>`
+  
   let xml = _xml_header + _xml_detail
   xml = xml.replace(/\n/g,'')
   return xml
@@ -61,6 +92,12 @@ const generateCorrelative = async (connection, query) => {
   }catch (e) {
     console.log(e,'ee')
   }
+}
+
+const calc = (theform) => {
+  let num = theform.original.value, rounded = theform.rounded
+  let with2Decimals = num.toString().match(/^-?\d+(?:\.\d{0,2})?/)[0]
+  rounded.value = with2Decimals
 }
 
 module.exports = {

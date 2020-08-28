@@ -73,8 +73,8 @@ const updatedDocument = (data, id) => {
 
 const createDetail = (data,id) => {
   
-  const query = `INSERT INTO document_details (id_document,package_id,description,qty,amount,sub_total,unitario,descuento,item)
-                  VALUES (${id},'${data.package_id}','${data.description}',${data.qty},${data.amount},${data.sub_total},${data.unitario},${data.descuento},'${data.item}');`
+  const query = `INSERT INTO document_details (id_document,package_id,description,qty,amount,sub_total,unitario,descuento,item, cod_service)
+                  VALUES (${id},'${data.package_id}','${data.description}',${data.qty},${data.amount},${data.sub_total},${data.unitario},${data.descuento},'${data.item}', ${data.cod_service});`
   return query
 }
 
@@ -201,7 +201,13 @@ const get = (params) => {
 }
 
 const getDetail = (id) => {
-  const query = `SELECT * FROM documents WHERE id = ${id}`;
+  const query = `SELECT D.id, client_id, nit, address, created_at, created_by, num_serie_sat, num_authorization_sat, num_control, total, sub_total, total_cta, observations,
+                transaction_number, delivery_date_sat, certification_date_date, annulation_date, reason, annul_by,
+                ds.name as status, dt.description
+                FROM documents D
+                INNER JOIN document_status ds on D.status = ds.id
+                INNER JOIN document_types dt on D.type_doc = dt.id
+                WHERE D.id = ${id}`;
   return query
 }
 
@@ -286,6 +292,16 @@ const getReconciliation = (params) => {
   return query
 }
 
+const revertPackage = (id) => {
+  const query = ` update paquetes SET status = 'Recoger en Prime', ent_date = '0000-00-00'
+                  WHERE package_id in (SELECT dd.package_id
+                  FROM documents d
+                  INNER JOIN document_details dd on d.id = dd.id_document
+                  where d.id = ${id})`
+  
+  return query
+}
+
 module.exports = {
   post: create,
   isEmpty,
@@ -309,5 +325,6 @@ module.exports = {
   createReconciliation,
   updateReconciliation,
   getReconciliation,
-  products
+  products,
+  revertPackage
 }

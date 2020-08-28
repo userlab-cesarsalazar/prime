@@ -37,6 +37,8 @@ module.exports.create = async (event, context) => {
     //build XML
     const xml_form = buildXML(data, moment)
   
+    //return response(200, xml_form, connection)
+  
     let invoiceData = {
       Cliente: process.env['CLIENT_FACT_DEV'],
       Usuario:process.env['USER_FACT_DEV'],
@@ -61,7 +63,7 @@ module.exports.create = async (event, context) => {
       throw Error('Error creating log')
     
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT'], invoiceData)
-    
+    //console.log(xml_response,'ll')
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js,date)
     
     if(json.Errores)
@@ -200,6 +202,7 @@ module.exports.annul = async (event) => {
     if(documents.length === 0 ||  !documents[0].num_authorization_sat)
       throw new Error (`Error the autorization number is required`)
     
+    
     let invoiceData = {
       Cliente: process.env['CLIENT_FACT_DEV'],
       Usuario:process.env['USER_FACT_DEV'],
@@ -208,20 +211,39 @@ module.exports.annul = async (event) => {
       Numautorizacionuuid: documents[0].num_authorization_sat,
       Motivoanulacion: data.reason
     }
+  
+    /** TODO
+     * Save Logs
+     */
+    const log = await connection.execute(storage.saveToLog(invoiceData, date,id))
+    if(!log[0].insertId)
+      throw Error('Error creating log')
     
       const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
       if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
       const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
-    
-    /** TODO
-     * Save Logs
-     */
   
+    if(json.Errores)
+      throw Error(JSON.stringify(json.Errores.Error))
+    
     const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
-    /** TODO
-     * update the status packages
-     */
-    return response(200, json, connection)
+    
+    let serializerResponse = {
+      create_at: json.DTE ? json.DTE.FechaAnulacion[0] : null,
+      certification_date: json.DTE.FechaCertificacion ? json.DTE.FechaCertificacion[0] : null,
+      error: json.DTE.Error ? json.DTE.Error[0] : null,
+      pdf: json.DTE.Pdf[0],
+      xml: json.DTE.Xml[0]
+    }
+  
+    await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
+
+    await connection.execute(storage.revertPackage(id))
+    
+    delete serializerResponse.pdf
+    delete serializerResponse.xml
+    
+    return response(200, serializerResponse, connection)
   } catch (e) {
     console.log(e)
     return response(400, e.message, null)

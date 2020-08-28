@@ -10,10 +10,12 @@
   },
   "license": "ISC",
   "dependencies": {
+    "accounting-js": "^1.1.1",
     "aws-sdk": "^2.467.0",
     "moment-timezone": "^0.5.25",
     "mysql2": "^1.6.5",
     "request": "^2.88.0",
+    "save": "^2.4.0",
     "serverless-offline": "^4.10.3",
     "soap": "^0.32.0",
     "uuid": "^3.3.2",
