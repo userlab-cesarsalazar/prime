@@ -54,7 +54,7 @@ module.exports.create = async (event, context) => {
         let detail = await connection.execute(storage.createDetail(x,create.insertId))
         
         //download to Inventory
-        //await connection.execute(storage.downloadSimple(date,x.package_id))
+        await connection.execute(storage.downloadSimple(date,x.package_id))
         return detail
       }));
    }
