@@ -21,6 +21,7 @@
     "bcryptjs": "^2.4.3",
     "jwt-decode": "^2.2.0",
     "soap": "^0.32.0",
-    "xml2js": "^0.4.23"
+    "xml2js": "^0.4.23",
+    "accounting-js": "^1.1.1"
   }
 }
