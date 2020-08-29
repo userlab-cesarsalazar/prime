@@ -275,7 +275,7 @@ const getReconciliation = (params) => {
   
   let query = `SELECT D.* FROM documents D
                  INNER JOIN account_reconciliation a on D.id = a.document_id
-                 WHERE D.status in (2)`
+                 WHERE a.status = 'PENDING' ORDER BY D.id DESC`
   
   switch (params.type) {
     case 'client':
@@ -283,7 +283,7 @@ const getReconciliation = (params) => {
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
-                WHERE D.client_id = '${params.id}' AND D.status in (2)`
+                WHERE D.client_id = '${params.id}'  a.status = 'PENDING' ORDER BY D.id DESC`
       break
     case 'date':
       query = `SELECT  D.*
@@ -291,7 +291,7 @@ const getReconciliation = (params) => {
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
                 WHERE a.recorded_at >= '${params.start}' AND a.recorded_at <= '${params.end}'
-                AND D.status in (2)`
+                a.status = 'PENDING' ORDER BY D.id DESC`
       break
   }
   
