@@ -65,7 +65,8 @@ const updatedDocument = (data, id) => {
   const query = `UPDATE documents SET num_serie_sat = '${data.sat_number}',
                                       num_authorization_sat = '${data.autorization_number}',
                                       delivery_date_sat = '${data.create_at}',
-                                      certification_date_date = '${data.certification_date}'
+                                      certification_date_date = '${data.certification_date}',
+                                      status = 'DONE'
                                       WHERE id = ${id}`
   
   return query
