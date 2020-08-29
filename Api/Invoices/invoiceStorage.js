@@ -66,7 +66,7 @@ const updatedDocument = (data, id) => {
                                       num_authorization_sat = '${data.autorization_number}',
                                       delivery_date_sat = '${data.create_at}',
                                       certification_date_date = '${data.certification_date}',
-                                      status = 'DONE'
+                                      status = 2
                                       WHERE id = ${id}`
   
   return query
@@ -178,22 +178,28 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT D.* FROM documents D ORDER By id DESC LIMIT 25`
+  let query = `SELECT D.* , ds.name as status_invoices
+              FROM documents D
+              INNER JOIN document_status ds on D.status = ds.id
+              ORDER By id DESC LIMIT 25`
   switch (params.type) {
     case 'client':
-      query = `SELECT  D.*
+      query = `SELECT  D.*, ds.name as status_invoices
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
+                INNER JOIN document_status ds on D.status = ds.id
                 WHERE D.client_id = '${params.id}'`
       break
     case 'control':
-      query = `SELECT  D.*
+      query = `SELECT  D.*,ds.name as status_invoices
                 FROM documents D
+                INNER JOIN document_status ds on D.status = ds.id
                 WHERE D.num_control = '${params.id}'`
       break
     case 'sat_number':
-      query = `SELECT  D.*
+      query = `SELECT  D.*, ds.name as status_invoices
                 FROM documents D
+                INNER JOIN document_status ds on D.status = ds.id
                 WHERE D.num_serie_sat = '${params.id}'`
       break
   }
