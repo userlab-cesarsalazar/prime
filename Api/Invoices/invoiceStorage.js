@@ -273,20 +273,20 @@ const updateReconciliation = (data, id, date) => {
 }
 const getReconciliation = (params) => {
   
-  let query = `SELECT D.* FROM documents D
+  let query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation FROM documents D
                  INNER JOIN account_reconciliation a on D.id = a.document_id
                  WHERE a.status = 'PENDING' ORDER BY D.id DESC`
   
   switch (params.type) {
     case 'client':
-      query = `SELECT  D.*
+      query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
                 WHERE D.client_id = '${params.id}'  a.status = 'PENDING' ORDER BY D.id DESC`
       break
     case 'date':
-      query = `SELECT  D.*
+      query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
