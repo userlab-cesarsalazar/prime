@@ -81,14 +81,13 @@ const createDetail = (data,id) => {
 
 const downloadSimple = (date, package_id) => {
   const query = `UPDATE paquetes SET ent_date = '${date}',
-                  delivery = '${0}',
-                  entregado = '${0}',
-                  cancelado = ${0},
-                  anticipo = '${0}',
-                  pending_amount = ${0},
+                  delivery = '0',
+                  entregado = '0',
+                  cancelado = 0,
+                  anticipo = '0',
+                  pending_amount = 0,
                   status = 'Entregado'
                   WHERE package_id = ${package_id};`
-  
   return query
 }
 const isEmpty = (obj) => {
