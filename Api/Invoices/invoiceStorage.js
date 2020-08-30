@@ -290,10 +290,12 @@ const getReconciliation = (params) => {
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
-                WHERE a.recorded_at >= '${params.start}' AND a.recorded_at <= '${params.end}'
+                WHERE a.created_at >= '${params.start}' AND a.created_at <= '${params.end}'
                 AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
   }
+  
+  console.log(query)
   
   return query
 }
