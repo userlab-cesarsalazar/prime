@@ -283,7 +283,7 @@ const getReconciliation = (params) => {
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
-                WHERE D.client_id = '${params.id}'  a.status = 'PENDING' ORDER BY D.id DESC`
+                WHERE D.client_id = '${params.id}' AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
     case 'date':
       query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation
@@ -291,7 +291,7 @@ const getReconciliation = (params) => {
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
                 WHERE a.recorded_at >= '${params.start}' AND a.recorded_at <= '${params.end}'
-                a.status = 'PENDING' ORDER BY D.id DESC`
+                AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
   }
   
