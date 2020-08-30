@@ -306,8 +306,11 @@ module.exports.reconciliation = async (event) => {
       params.id = event.queryStringParameters.id
     }
     if(params.type === 'date'){
-      params.start = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 00:00:00')
-      params.end = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 23:59:99')
+      
+      const date = moment(params.id).format('YYYY-MM-DD 00:00:00')
+      
+      params.start = date
+      params.end = moment(date).format('YYYY-MM-DD 23:59:99')
     }
     const connection = await mysql.createConnection(dbConfig)
     const [accounts] = await connection.execute(storage.getReconciliation(params))
