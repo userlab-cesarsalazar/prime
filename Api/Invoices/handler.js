@@ -46,14 +46,14 @@ module.exports.create = async (event, context) => {
       Xmldoc: xml_form
     }
     // header invoice
-    
+    const date_download = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     //create detail
     if(create.affectedRows > 0 ){
       await Promise.all(data.items.map(async (x) => {
         let detail = await connection.execute(storage.createDetail(x,create.insertId))
         
         //download to Inventory
-        if(x.package_id) await connection.execute(storage.downloadSimple(date,x.package_id))
+        if(x.package_id) await connection.execute(storage.downloadSimple(date_download,x.package_id))
         return detail
       }));
    }
