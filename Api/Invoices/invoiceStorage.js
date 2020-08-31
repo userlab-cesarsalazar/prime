@@ -48,7 +48,7 @@ const create = (data,date,correlative) => {
                   '${data.nit}',
                   '${data.address}',
                   ${data.type_doc},
-                  '${correlative}',
+                  '${correlative ? correlative : 'A00000'}',
                   ${data.total},
                   ${data.sub_total},
                   ${data.total_cta},
