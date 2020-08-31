@@ -22,7 +22,7 @@ module.exports.create = async (event, context) => {
     
     const connection = await mysql.createConnection(dbConfig)
   
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     
     const correlative = await generateCorrelative(connection,storage.getCorrelative())
     
@@ -195,7 +195,7 @@ module.exports.annul = async (event) => {
     if ( validation ) throw `missing_parameter. ${validation}`
     
     const connection = await mysql.createConnection(dbConfig)
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     const [documents] =  await connection.execute(storage.getDetail(id))
     
     if(documents.length === 0 ||  !documents[0].num_authorization_sat)
@@ -275,7 +275,7 @@ module.exports.updateReconciliation = async (event) => {
     
     const connection = await mysql.createConnection(dbConfig)
     
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     
     const [update] = await connection.execute(storage.updateReconciliation(data, id, date))
     
