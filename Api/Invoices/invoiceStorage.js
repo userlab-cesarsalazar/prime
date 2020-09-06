@@ -161,7 +161,7 @@ const saveToLog = (data,date,insertId) => {
 const updatedToLog = (data,date,id_log) => {
   const query = ` UPDATE log_documents SET response_pdf = '${data.pdf}', response_xml = '${data.xml}',
                    response_data = '${data.create_at} - ${data.certification_date} - ${data.autorization_number} - ${data.sat_number}', error = '${data.error ? JSON.stringify(data.error) : 'NO ERRORS'}',
-                   update_at = '${date}' WHERE id = ${id_log};`
+                   update_at = '${date}' WHERE document_id = ${id_log};`
   return query
 }
 

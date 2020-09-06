@@ -79,7 +79,7 @@ module.exports.create = async (event, context) => {
     }
     //console.log(serializerResponse, 'serializerResponse')
     
-    await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
+    await connection.execute(storage.updatedToLog(serializerResponse, date,create.insertId))
     await connection.execute(storage.updatedDocument(serializerResponse, create.insertId))
     //create account
     await connection.execute(storage.createReconciliation(create.insertId, date))
@@ -230,7 +230,7 @@ module.exports.annul = async (event) => {
       xml: json.DTE.Xml[0]
     }
   
-    await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
+    await connection.execute(storage.updatedToLog(serializerResponse, date,id))
 
     await connection.execute(storage.revertPackage(id))
     
