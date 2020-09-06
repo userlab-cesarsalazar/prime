@@ -261,7 +261,7 @@ module.exports.sendPrime = async event => {
 
     if (!params) throw 'no_params'
 
-    const SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}, Total: ${params.profile.total}  en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
+    const SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
     const phone = `502${params.profile[0].phone}`
 
     let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`

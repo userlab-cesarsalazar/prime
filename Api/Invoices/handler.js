@@ -211,21 +211,16 @@ module.exports.annul = async (event) => {
       Motivoanulacion: data.reason
     }
   
-    /** TODO
-     * Save Logs
-     */
-    const log = await connection.execute(storage.saveToLog(invoiceData, date,id))
-    if(!log[0].insertId)
-      throw Error('Error creating log')
+    console.log(invoiceData, 'sending data to annul')
     
-      const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
-      if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
-      const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
+    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
+    if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
+    const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
   
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
-    const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
+    await connection.execute(storage.invoiceAnnul(data,date,id))
     
     let serializerResponse = {
       create_at: json.DTE ? json.DTE.FechaAnulacion[0] : null,
