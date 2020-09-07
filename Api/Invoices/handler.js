@@ -22,7 +22,7 @@ module.exports.create = async (event, context) => {
     
     const connection = await mysql.createConnection(dbConfig)
   
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     
     const correlative = await generateCorrelative(connection,storage.getCorrelative())
     
@@ -46,14 +46,14 @@ module.exports.create = async (event, context) => {
       Xmldoc: xml_form
     }
     // header invoice
-    
+    const date_download = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     //create detail
     if(create.affectedRows > 0 ){
       await Promise.all(data.items.map(async (x) => {
         let detail = await connection.execute(storage.createDetail(x,create.insertId))
         
         //download to Inventory
-        if(x.package_id) await connection.execute(storage.downloadSimple(date,x.package_id))
+        if(x.package_id) await connection.execute(storage.downloadSimple(date_download,x.package_id))
         return detail
       }));
    }
@@ -79,7 +79,7 @@ module.exports.create = async (event, context) => {
     }
     //console.log(serializerResponse, 'serializerResponse')
     
-    await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
+    await connection.execute(storage.updatedToLog(serializerResponse, date,create.insertId))
     await connection.execute(storage.updatedDocument(serializerResponse, create.insertId))
     //create account
     await connection.execute(storage.createReconciliation(create.insertId, date))
@@ -195,7 +195,7 @@ module.exports.annul = async (event) => {
     if ( validation ) throw `missing_parameter. ${validation}`
     
     const connection = await mysql.createConnection(dbConfig)
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     const [documents] =  await connection.execute(storage.getDetail(id))
     
     if(documents.length === 0 ||  !documents[0].num_authorization_sat)
@@ -211,21 +211,16 @@ module.exports.annul = async (event) => {
       Motivoanulacion: data.reason
     }
   
-    /** TODO
-     * Save Logs
-     */
-    const log = await connection.execute(storage.saveToLog(invoiceData, date,id))
-    if(!log[0].insertId)
-      throw Error('Error creating log')
+    console.log(invoiceData, 'sending data to annul')
     
-      const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
-      if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
-      const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
+    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
+    if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
+    const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
   
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
-    const [annul] = await connection.execute(storage.invoiceAnnul(data,date,id))
+    await connection.execute(storage.invoiceAnnul(data,date,id))
     
     let serializerResponse = {
       create_at: json.DTE ? json.DTE.FechaAnulacion[0] : null,
@@ -235,7 +230,7 @@ module.exports.annul = async (event) => {
       xml: json.DTE.Xml[0]
     }
   
-    await connection.execute(storage.updatedToLog(serializerResponse, date,log[0].insertId))
+    await connection.execute(storage.updatedToLog(serializerResponse, date,id))
 
     await connection.execute(storage.revertPackage(id))
     
@@ -275,7 +270,7 @@ module.exports.updateReconciliation = async (event) => {
     
     const connection = await mysql.createConnection(dbConfig)
     
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     
     const [update] = await connection.execute(storage.updateReconciliation(data, id, date))
     
@@ -306,8 +301,11 @@ module.exports.reconciliation = async (event) => {
       params.id = event.queryStringParameters.id
     }
     if(params.type === 'date'){
-      params.start = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 00:00:00')
-      params.end = moment(params.id).tz('America/Guatemala').format('YYYY-MM-DD 23:59:99')
+      
+      const date = moment(params.id).format('YYYY-MM-DD 00:00:00')
+      
+      params.start = date
+      params.end = moment(date).format('YYYY-MM-DD 23:59:99')
     }
     const connection = await mysql.createConnection(dbConfig)
     const [accounts] = await connection.execute(storage.getReconciliation(params))

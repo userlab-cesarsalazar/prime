@@ -48,7 +48,7 @@ const create = (data,date,correlative) => {
                   '${data.nit}',
                   '${data.address}',
                   ${data.type_doc},
-                  '${correlative}',
+                  '${correlative ? correlative : 'A00000'}',
                   ${data.total},
                   ${data.sub_total},
                   ${data.total_cta},
@@ -161,7 +161,7 @@ const saveToLog = (data,date,insertId) => {
 const updatedToLog = (data,date,id_log) => {
   const query = ` UPDATE log_documents SET response_pdf = '${data.pdf}', response_xml = '${data.xml}',
                    response_data = '${data.create_at} - ${data.certification_date} - ${data.autorization_number} - ${data.sat_number}', error = '${data.error ? JSON.stringify(data.error) : 'NO ERRORS'}',
-                   update_at = '${date}' WHERE id = ${id_log};`
+                   update_at = '${date}' WHERE document_id = ${id_log};`
   return query
 }
 
@@ -273,27 +273,29 @@ const updateReconciliation = (data, id, date) => {
 }
 const getReconciliation = (params) => {
   
-  let query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation FROM documents D
+  let query = `SELECT D.id, D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation FROM documents D
                  INNER JOIN account_reconciliation a on D.id = a.document_id
                  WHERE a.status = 'PENDING' ORDER BY D.id DESC`
   
   switch (params.type) {
     case 'client':
-      query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation
+      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
-                WHERE D.client_id = '${params.id}'  a.status = 'PENDING' ORDER BY D.id DESC`
+                WHERE D.client_id = '${params.id}' AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
     case 'date':
-      query = `SELECT D.client_id,num_control,total,total_cta,observations,a.status as status_conciliation
+      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
-                WHERE a.recorded_at >= '${params.start}' AND a.recorded_at <= '${params.end}'
-                a.status = 'PENDING' ORDER BY D.id DESC`
+                WHERE a.created_at >= '${params.start}' AND a.created_at <= '${params.end}'
+                AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
   }
+  
+  console.log(query)
   
   return query
 }
