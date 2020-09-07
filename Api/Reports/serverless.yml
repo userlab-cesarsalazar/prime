@@ -187,3 +187,47 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
+  byInvoices:
+    handler: handler.byInvoices
+    timeout: 30
+    events:
+      - http:
+          path: reports/byInvoices
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+ byConciliation:
+    handler: handler.byConciliation
+    timeout: 30
+    events:
+      - http:
+          path: reports/byConciliation
+          method: get
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+

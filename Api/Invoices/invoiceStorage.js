@@ -43,7 +43,7 @@ const read = (page, type, id) => {
 const create = (data,date,correlative) => {
   
   const query = `INSERT INTO documents (client_id, nit, address, type_doc, num_control,
-                  total, sub_total, total_cta, observations,status,created_at,created_by)
+                  total, sub_total, total_cta, observations,status,created_at,created_by, payment_id)
                   VALUES ('${data.client_id}',
                   '${data.nit}',
                   '${data.address}',
@@ -55,7 +55,8 @@ const create = (data,date,correlative) => {
                   '${data.observations}',
                   1,
                   '${date}',
-                  '${data.created_by}') `
+                  '${data.created_by}',
+                  ${data.payment_type}) `
   
   return query
 }

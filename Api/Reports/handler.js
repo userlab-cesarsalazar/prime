@@ -185,3 +185,38 @@ module.exports.byMasterTotal = async event => {
   }
 }
 
+module.exports.byInvoices = async event => {
+  try{
+    let date = ''    
+    
+    if (event.queryStringParameters && event.queryStringParameters.date) {
+      date = event.queryStringParameters.date
+    }
+    
+    const connection = await mysql.createConnection(dbConfig)
+    const [result] = await connection.execute(storage.getInvoices(date))
+    
+    return response(200, result, connection)
+  } catch (e) {
+    return response(400, e.message, null)
+  }
+}
+
+
+module.exports.byConciliation = async event => {
+  try{
+    let date = ''    
+    
+    if (event.queryStringParameters && event.queryStringParameters.date) {
+      date = event.queryStringParameters.date
+    }
+    
+    const connection = await mysql.createConnection(dbConfig)
+    const [result] = await connection.execute(storage.getConciliation(date))
+    
+    return response(200, result, connection)
+  } catch (e) {
+    return response(400, e.message, null)
+  }
+}
+

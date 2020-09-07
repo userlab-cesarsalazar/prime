@@ -25,14 +25,17 @@ module.exports.create = async (event, context) => {
     const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     
     const correlative = await generateCorrelative(connection,storage.getCorrelative())
-    
+    console.log(correlative,'tt')
+
+    await connection.beginTransaction()
+    // header invoice
     const [create] = await connection.execute(storage.post(data, date, correlative))
     
     if(!create)
       throw Error('Error creating Header Invoices')
     
     data.transaction_number = create.insertId
-    
+
     //build XML
     const xml_form = buildXML(data, moment)
   
@@ -45,18 +48,6 @@ module.exports.create = async (event, context) => {
       Nitemisor: process.env['NIT_FACT_DEV'],
       Xmldoc: xml_form
     }
-    // header invoice
-    const date_download = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-    //create detail
-    if(create.affectedRows > 0 ){
-      await Promise.all(data.items.map(async (x) => {
-        let detail = await connection.execute(storage.createDetail(x,create.insertId))
-        
-        //download to Inventory
-        if(x.package_id) await connection.execute(storage.downloadSimple(date_download,x.package_id))
-        return detail
-      }));
-   }
     const log = await connection.execute(storage.saveToLog(invoiceData, date,create.insertId))
     if(!log[0].insertId)
       throw Error('Error creating log')
@@ -68,6 +59,17 @@ module.exports.create = async (event, context) => {
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
+    const date_download = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+    //create detail
+    if(create.affectedRows > 0 ){
+      await Promise.all(data.items.map(async (x) => {
+        let detail = await connection.execute(storage.createDetail(x,create.insertId))        
+        //download to Inventory
+        if(x.package_id) await connection.execute(storage.downloadSimple(date_download,x.package_id))
+        return detail
+      }));
+   }
+        
     let serializerResponse = {
       create_at: json.DTE ? json.DTE.FechaEmision[0] : null,
       certification_date: json.DTE.FechaCertificacion ? json.DTE.FechaCertificacion[0] : null,
@@ -83,6 +85,8 @@ module.exports.create = async (event, context) => {
     await connection.execute(storage.updatedDocument(serializerResponse, create.insertId))
     //create account
     await connection.execute(storage.createReconciliation(create.insertId, date))
+
+    await connection.commit()
   
     if(serializerResponse.error)
       throw new Error(JSON.stringify(serializerResponse.error))
@@ -93,6 +97,8 @@ module.exports.create = async (event, context) => {
     return response(200, serializerResponse, connection)
   } catch (e) {
     console.log(e)
+    await connection.rollback()
+    await connection.end()
     return response(400, e.message, null)
   }
 }

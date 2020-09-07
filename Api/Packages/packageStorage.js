@@ -233,6 +233,17 @@ const getGuides = ( ) => {
   return query
 }
 
+const getGuidesOpens = ( ) => {
+  
+  const query = ` SELECT * FROM 
+                  FROM guides g
+                  WHERE status = 'ACTIVE'
+                  ORDER by g.id DESC`
+  return query
+}
+
+
+
 module.exports = {
   get: read,
   post: create,
@@ -250,5 +261,6 @@ module.exports = {
   checkGuide,
   closeGuide,
   postGuide,
-  getGuides
+  getGuides,
+  getGuidesOpens
 }

@@ -336,6 +336,19 @@ module.exports.getGuides = async (event, context) => {
   }
 }
 
+module.exports.getGuidesOpen = async (event, context) => {
+  try {
+    
+    let connection = await mysql.createConnection(dbConfig)
+    const [guides] = await connection.execute(storage.getGuidesOpens())
+    
+    return response(200, guides, connection)
+  } catch (e) {
+    console.log(e)
+    return response(400, e, null)
+  }
+}
+
 module.exports.closeGuides = async (event, context) => {
   try {
     console.log(event.queryStringParameters, 'queryStringParameters')

@@ -129,6 +129,24 @@ const byMasterTotal = (master, poliza) => {
   return query
 }
 
+const getInvoices = (date) => {
+  const query = `SELECT client_id,nit,num_serie_sat, num_authorization_sat,num_control,certification_date_date, total_cta, ds.name as status, pt.name as payment
+                  FROM documents d 
+                  INNER JOIN document_status ds on d.status = ds.id
+                  INNER JOIN payment_types pt on d.payment_id = pt.id 
+                  where created_at = '${date}'`
+  return query
+}
+
+const getConciliation = date => {
+  const query = `SELECT p.* , ar.status  FROM paquetes p
+                  INNER JOIN document_details dd on p.package_id = dd.package_id 
+                  INNER JOIN documents d2 on dd.id_document = d2.id 
+                  INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
+                  WHERE recorded_at = ${date}`
+  return query
+}
+
 module.exports = {
   read: readList,
   totalsByDate,
@@ -140,5 +158,7 @@ module.exports = {
   packagesOnRouteTotal,
   stateAccount,
   reportByMaster,
-  byMasterTotal
+  byMasterTotal,
+  getInvoices,
+  getConciliation
 };
