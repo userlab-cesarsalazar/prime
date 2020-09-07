@@ -31,7 +31,7 @@ const buildXML = (data, moment) => {
                   <TrnArtCod>${ x.description === 'Desaduanaje' ? 'D' : x.description === 'Flete' ? 'F': 'E'}</TrnArtCod>
                   <TrnArtNom>${ x.description }</TrnArtNom>
                   <TrnCan>${x.qty}</TrnCan>
-                  <TrnVUn>${x.amount}</TrnVUn>
+                  <TrnVUn>${x.unitario}</TrnVUn>
                   <TrnUniMed>UNI</TrnUniMed>
                   <TrnVDes>0.0</TrnVDes>
                   <TrnArtBienSer>S</TrnArtBienSer>
