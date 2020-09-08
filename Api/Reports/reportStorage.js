@@ -130,7 +130,8 @@ const byMasterTotal = (master, poliza) => {
 }
 
 const getInvoices = (date) => {
-  const query = `SELECT client_id,nit,num_serie_sat, num_authorization_sat,num_control,certification_date_date, total_cta, ds.name as status, pt.name as payment
+  const query = `SELECT client_id,nit,num_serie_sat, num_authorization_sat,num_control,certification_date_date, total_cta, created_at, 
+                  ds.name as status, pt.name as payment, d.observations, d.id as transaction_id
                   FROM documents d 
                   INNER JOIN document_status ds on d.status = ds.id
                   INNER JOIN payment_types pt on d.payment_id = pt.id 
@@ -139,11 +140,12 @@ const getInvoices = (date) => {
 }
 
 const getConciliation = date => {
-  const query = `SELECT p.* , ar.status  FROM paquetes p
+  const query = `SELECT p.package_id, p.client_id, p.guia, p.weight, d2.total_cta, ar.status, d2.num_control, d2.id as transaction_id
+                  FROM paquetes p
                   INNER JOIN document_details dd on p.package_id = dd.package_id 
                   INNER JOIN documents d2 on dd.id_document = d2.id 
                   INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
-                  WHERE recorded_at = ${date}`
+                  WHERE recorded_at = '${date}' GROUP by p.package_id`
   return query
 }
 

@@ -209,7 +209,7 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
- byConciliation:
+  byConciliation:
     handler: handler.byConciliation
     timeout: 30
     events:
