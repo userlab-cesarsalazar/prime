@@ -178,7 +178,7 @@ const transfer = params => {
   const moment = require('moment-timezone')
   const query = ` UPDATE paquetes 
                 SET total_a_pagar = ${params.total}, client_id = '${params.client_id}' ,
-                ent_date = '${params.ent_date !== 'Invalid date' ? moment(params.ent_date).tz('America/Guatemala').format('YYYY-MM-DD') : '0000-00-00'}'
+                ent_date = '${params.ent_date === '0000-00-00' ? '0000-00-00' : params.ent_date }'
                 WHERE package_id = ${params.package_id} `
 
   return query
