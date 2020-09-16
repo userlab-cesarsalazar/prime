@@ -16,7 +16,7 @@ let storage = require('./invoiceStorage')
 module.exports.create = async (event, context) => {
   try {
     let data = JSON.parse(event.body)
-    
+    console.log(data)
     const validation = storage.isEmpty(data)
     if ( validation ) throw `missing_parameter. ${validation}`
     
