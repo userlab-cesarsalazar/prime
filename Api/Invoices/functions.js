@@ -39,7 +39,7 @@ const buildXML = (data, moment) => {
                   <TrnArtImpAdiUniGrav>0</TrnArtImpAdiUniGrav>
                  </stdTWS.stdTWSCIt.stdTWSDIt>`
      oea = x.item;
-    if(x.package_id && x.cod_service === 2 ){
+    if(x.package_id && x.cod_service === 1 ){
       _dai += x.dai
       _iva += parseFloat(x.total_iva)
     }

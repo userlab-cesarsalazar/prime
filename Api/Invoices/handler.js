@@ -38,7 +38,9 @@ module.exports.create = async (event, context) => {
 
     //build XML
     const xml_form = buildXML(data, moment)
-  
+    
+    console.log(xml_form)
+    //throw Error('stop')
     ///return response(200, xml_form, connection)
   
     let invoiceData = {
@@ -97,8 +99,8 @@ module.exports.create = async (event, context) => {
     return response(200, serializerResponse, connection)
   } catch (e) {
     console.log(e)
-    await connection.rollback()
-    await connection.end()
+    //await connection.rollback()
+    //await connection.end()
     return response(400, e.message, null)
   }
 }
