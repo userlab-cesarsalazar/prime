@@ -68,6 +68,7 @@ typings/
 .idea
 
 credentials.json
+credentials.dev.json
 .DS_Store
 .vs_code
 .idea
