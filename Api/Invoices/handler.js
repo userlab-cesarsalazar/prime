@@ -241,6 +241,7 @@ module.exports.annul = async (event) => {
     await connection.execute(storage.updatedToLog(serializerResponse, date,id))
 
     await connection.execute(storage.revertPackage(id))
+    await connection.execute(storage.revertConciliation(id,date))
     
     delete serializerResponse.pdf
     delete serializerResponse.xml

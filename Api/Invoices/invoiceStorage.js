@@ -296,8 +296,6 @@ const getReconciliation = (params) => {
       break
   }
   
-  console.log(query)
-  
   return query
 }
 
@@ -308,6 +306,11 @@ const revertPackage = (id) => {
                   INNER JOIN document_details dd on d.id = dd.id_document
                   where d.id = ${id})`
   
+  return query
+}
+
+const revertConciliation = (id,date) => {
+  const query = ` update account_reconciliation SET status = 'CANCELLED', recorded_at = '${date}' where document_id = ${id}`
   return query
 }
 
@@ -335,5 +338,6 @@ module.exports = {
   updateReconciliation,
   getReconciliation,
   products,
-  revertPackage
+  revertPackage,
+  revertConciliation
 }
