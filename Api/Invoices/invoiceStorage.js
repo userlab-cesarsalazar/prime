@@ -179,26 +179,26 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT D.* , ds.name as status_invoices
+  let query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
               FROM documents D
               INNER JOIN document_status ds on D.status = ds.id
               ORDER By id DESC LIMIT 25`
   switch (params.type) {
     case 'client':
-      query = `SELECT  D.*, ds.name as status_invoices
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN document_status ds on D.status = ds.id
                 WHERE D.client_id = '${params.id}'`
       break
     case 'control':
-      query = `SELECT  D.*,ds.name as status_invoices
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
-                WHERE D.num_control = '${params.id}'`
+                WHERE D.id = '${params.id}'`
       break
     case 'sat_number':
-      query = `SELECT  D.*, ds.name as status_invoices
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
                 WHERE D.num_serie_sat = '${params.id}'`

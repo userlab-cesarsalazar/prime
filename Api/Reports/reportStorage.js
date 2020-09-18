@@ -140,12 +140,13 @@ const getInvoices = (date) => {
 }
 
 const getConciliation = date => {
-  const query = `SELECT p.package_id, p.client_id, p.guia, p.weight, d2.total_cta, ar.status, d2.num_control, d2.id as transaction_id
+  const query = `SELECT COUNT(DISTINCT p.package_id) as package_id,  p.client_id, SUM(p.weight) as weight, d2.total_cta, ar.status, d2.num_control, d2.id as transaction_id,
+                  GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia
                   FROM paquetes p
-                  INNER JOIN document_details dd on p.package_id = dd.package_id 
-                  INNER JOIN documents d2 on dd.id_document = d2.id 
+                  INNER JOIN document_details dd on p.package_id = dd.package_id
+                  INNER JOIN documents d2 on dd.id_document = d2.id
                   INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
-                  WHERE recorded_at = '${date}' GROUP by p.package_id`
+                  WHERE recorded_at = '${date}' GROUP by d2.id`
   return query
 }
 
