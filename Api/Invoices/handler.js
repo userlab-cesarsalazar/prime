@@ -67,7 +67,7 @@ module.exports.create = async (event, context) => {
       await Promise.all(data.items.map(async (x) => {
         let detail = await connection.execute(storage.createDetail(x,create.insertId))        
         //download to Inventory
-        if(x.package_id) await connection.execute(storage.downloadSimple(date_download,x.package_id))
+        if(x.package_id && x.cod_service === 1) await connection.execute(storage.downloadSimple(date_download,x.package_id))
         return detail
       }));
    }
