@@ -143,7 +143,6 @@ module.exports.update = async (event, context) => {
       const update = await connection.execute(storage.downloadSimple(date, package_id))
     } else {
       console.log('2')
-      console.log(data)
       const update = await connection.execute(storage.updateStatus(data, package_id, date, data.status))
     }
 

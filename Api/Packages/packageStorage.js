@@ -126,10 +126,7 @@ const updateStatus = (data, package_id, date, status) => {
 
   const query = `UPDATE paquetes SET weight = '${data.weight}',
                   description = '${data.description}', status = '${status}', total_a_pagar = ${data.total},
-                  ent_date = '${status === 'Entregado' || status === 'Entregado con saldo pendiente' ? date : ''}',
-                  delivery = '${data.delivery ? data.delivery : '0'}',
-                  entregado = '${data.entregado ? data.entregado : '0'}',
-                  cancelado = ${data.cancelado ? data.cancelado : 0},
+                  ent_date = '${status === 'Entregado' || status === 'Entregado con saldo pendiente' ? date : data.ent_date}',
                   anticipo = '${data.anticipo ? data.anticipo : '0'}',
                   pending_amount = ${data.pendiente ? data.pendiente : 0},
                   cif=${data.cif},
@@ -137,7 +134,8 @@ const updateStatus = (data, package_id, date, status) => {
                   importe=${data.importe},
                   total_iva = ${data.iva},
                   guia = '${data.guia}',
-                  poliza = '${data.poliza}'
+                  poliza = '${data.poliza}',
+                  costo_producto = ${data.cost}
                   WHERE package_id = ${parseInt(package_id, 10)};`
   
   return query
