@@ -1,0 +1,173 @@
+service: Warehouse-pn
+
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'pn'}
+  region: us-east-1
+  deploymentBucket:
+    name: ${file(../../commons/credentials.json):${self:provider.stage}.deploymentBucket}
+  environment:
+    STAGE: ${self:provider.stage}
+    DB_HOST: ${file(../../commons/credentials.json):${self:provider.stage}.dbHost}
+    DB_PORT: ${file(../../commons/credentials.json):${self:provider.stage}.dbPort}
+    DB_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.dbPassword}
+    DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
+    DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
+    API_KEY_TIGO: ${file(../../commons/credentials.json):${self:provider.stage}.api_key_tigo}
+    ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - execute-api:Invoke
+        - lambda:InvokeFunction
+        - lambda:InvokeAsync
+        - ses:SendEmail
+        - SNS:Publish
+      Resource: "*"
+
+package:
+  include:
+    - ../../commons/**
+  exclude:
+    - node_modules/**
+
+functions:
+  supplierGet:
+    handler: handler.getSupplier
+    timeout: 30
+    events:
+      - http:
+          path: suppliers
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  supplierCreate:
+    handler: handler.createSupplier
+    timeout: 30
+    events:
+      - http:
+          path: suppliers
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  supplierPut:
+    handler: handler.putSuppliers
+    timeout: 30
+    events:
+      - http:
+          path: suppliers/{id}
+          method: put
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+
+  carrierGet:
+    handler: handler.getCarries
+    timeout: 30
+    events:
+      - http:
+          path: carries
+          method: get
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  carrierCreate:
+    handler: handler.createCarrie
+    timeout: 30
+    events:
+      - http:
+          path: carries
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  carrierPut:
+    handler: handler.putCarrie
+    timeout: 30
+    events:
+      - http:
+          path: carries/{id}
+          method: put
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+
+

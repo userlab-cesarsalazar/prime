@@ -218,6 +218,29 @@ module.exports.transfer = async (event, context) => {
 }
 
 function prepareToSend(user, profile) {
+  let MSG = ``
+  if(user.client_id.charAt(0) === 'P'){
+    MSG = `<p><br />Queríamos informarle que ya tenemos un paquete listo en nuestras oficinas, puede ser enviado a domicilio o entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
+                <div>
+                  Código de Cliente: ${user.client_id} <br />
+                  Tracking: ${user.tracking} <br />
+                  Peso en Lbs: ${user.weight} <br />
+                <div>
+                </p>
+                Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
+                 5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
+                 Envíanos un correo a : info@primenowcourier.com si quieres que te enviemos tu paquete a domicilio o llamanos Telefonos: 22193432 - 33481631 <br /> `
+  }else {
+    MSG = `<p><br />Le informamos que se ha recibido  un paquete en su casillero y se encuentra disponivoe en Guatemala, los datos del paquete son los siguientes:<br />
+                <div>
+                  Código de Cliente: ${user.client_id} <br />
+                  Tracking: ${user.tracking} <br />
+                  Peso en Lbs: ${user.weight} <br />
+                <div>
+                </p>
+                Para coordinación de entrega comunicarse a el número 5803-2545 o correo eléctrico Info@rapiditoexpress.com <br /> `
+  }
+  
   const template = {
     mailList: [profile[0].email],
     from: 'info@primenowcourier.com',
@@ -226,17 +249,7 @@ function prepareToSend(user, profile) {
     body: {
       Html: {
         Charset: 'UTF-8',
-        Data: `<p><br />Queríamos informarle que ya tenemos un paquete listo en nuestras oficinas, puede ser enviado a domicilio o entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
-                <div>
-                  Código de Cliente: ${user.client_id} <br />
-                  Tracking: ${user.tracking} <br />
-                  Peso en Lbs: ${user.weight} <br />
-                  Total a Pagar: Q.${user.total} <br />
-                <div>
-                </p>
-                Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
-                 5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
-                 Envíanos un correo a : info@primenowcourier.com si quieres que te enviemos tu paquete a domicilio o llamanos Telefonos: 22193432 - 33481631 <br /> `,
+        Data: MSG,
       },
     },
   }
@@ -259,8 +272,13 @@ module.exports.sendPrime = async event => {
     console.log(params)
 
     if (!params) throw 'no_params'
-
-    const SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
+    let SMS = ``
+    if (params.data.client_id.charAt(0) === 'P' ){
+       SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}  en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
+    }else {
+      SMS = `Le informamos que tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}. Para coordinación de entrega comunicarse al 5803-2545 o email Info@rapiditoexpress.com`
+    }
+    console.log(params.data.client_id.charAt(0),'TXT')
     const phone = `502${params.profile[0].phone}`
 
     let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`

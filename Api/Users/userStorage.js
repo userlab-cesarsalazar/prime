@@ -124,7 +124,8 @@ const getPackage = id => {
 }
 
 const findMaxId = () => {
-  const query = `SELECT id_usuario as id , client_id FROM clientes WHERE id_usuario = ( SELECT MAX(id_usuario ) FROM clientes )`;
+  //const query = `SELECT id_usuario as id , client_id FROM clientes WHERE id_usuario = ( SELECT MAX(id_usuario ) FROM clientes )`;
+  const query = `SELECT id_usuario as id , client_id FROM clientes WHERE client_id = ( SELECT MAX(client_id ) FROM clientes c WHERE c.client_id like 'P%')`;
   
   return query
 }

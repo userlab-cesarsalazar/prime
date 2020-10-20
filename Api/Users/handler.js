@@ -55,6 +55,7 @@ module.exports.read = async (event, context) => {
   }
 
   try {
+    
     let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.get(page, params))
     return response(200, users, connection)
@@ -88,7 +89,6 @@ module.exports.create = async (event, context) => {
     const connection = await mysql.createConnection(dbConfig)
     let obj = serializeData(data, false)
     const save = await connection.execute(storage.post(obj))
-    let [client_id] = await connection.execute(storage.findMaxId())
     //save the initial
     const _client = await generateID(connection)
     obj.client_id = _client
