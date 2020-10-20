@@ -8,6 +8,8 @@ provider:
   runtime: nodejs10.x
   stage: ${opt:stage, 'pn'}
   region: us-east-1
+  deploymentBucket:
+    name: ${file(../../commons/credentials.json):${self:provider.stage}.deploymentBucket}
   environment:
     STAGE: ${self:provider.stage}
     DB_HOST: ${file(../../commons/credentials.json):${self:provider.stage}.dbHost}
