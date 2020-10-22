@@ -2,22 +2,8 @@ const accounting = require('accounting-js')
 
 const buildXML = (data, moment) => {
   //build XML Header
-  let _xml_header = `<stdTWS xmlns="FEL">
-                    <TrnEstNum>1</TrnEstNum>
-                    <TipTrnCod>FACT</TipTrnCod>
-                    <TrnNum>${data.transaction_number}</TrnNum>
-                    <TrnFec>${moment().tz('America/Guatemala').format('YYYY-MM-DD')}</TrnFec>
-                    <MonCod>GTQ</MonCod>
-                    <TrnBenConNIT>${data.nit}</TrnBenConNIT>
-                    <TrnExp>0</TrnExp>
-                    <TrnExento>0</TrnExento>
-                    <TrnFraseTipo>0</TrnFraseTipo>
-                    <TrnEscCod>0</TrnEscCod>
-                    <TrnEFACECliCod/>
-                    <TrnEFACECliNom>${data.client_name}</TrnEFACECliNom>
-                    <TrnEFACECliDir>${data.address}</TrnEFACECliDir>
-                    <TrnObs>${data.observations}</TrnObs>
-                    <TrnEmail>${data.email_client}</TrnEmail>`
+  //build XML Header
+  let _xml_header = headerInvoice(data, moment)
   
   //build XML detail
   let line = 1
@@ -75,6 +61,76 @@ const buildXML = (data, moment) => {
   return xml
 }
 
+const buildXMLAllInclude = (data, moment) => {
+  //build XML Header
+  let _xml_header = headerInvoice(data, moment)
+  //build XML detail
+  let line = 1
+  let _xml_detail = ''
+  let oea = ''
+  let amount_cuenta_ajena =0
+  data.items.forEach( (x)=> {
+  
+    if(x.package_id && x.cod_service === 6 ){
+      amount_cuenta_ajena += parseFloat(x.amount)
+    }
+    if(x.cod_service !== 6){
+      let str = `<stdTWS.stdTWSCIt.stdTWSDIt>
+                  <TrnLiNum>${line}</TrnLiNum>
+                  <TrnArtCod>${ x.description === 'Servicio Courier' ? 'S' : x.description === 'Cuenta Ajena' ? 'C': 'E'}</TrnArtCod>
+                  <TrnArtNom>${ x.description }</TrnArtNom>
+                  <TrnCan>${x.qty}</TrnCan>
+                  <TrnVUn>${x.unitario && x.cod_service !== 4 ? x.unitario : x.amount }</TrnVUn>
+                  <TrnUniMed>UNI</TrnUniMed>
+                  <TrnVDes>0.0</TrnVDes>
+                  <TrnArtBienSer>S</TrnArtBienSer>
+                  <TrnArtImpAdiCod>0</TrnArtImpAdiCod>
+                  <TrnArtImpAdiUniGrav>0</TrnArtImpAdiUniGrav>
+                 </stdTWS.stdTWSCIt.stdTWSDIt>`
+      oea = x.item;
+     
+      _xml_detail = _xml_detail + str
+    }
+  })
+  _xml_detail = `<stdTWSD>${_xml_detail}</stdTWSD>
+                 <stdTWSCA1>
+                    <stdTWS.stdTWSCA1.stdTWSCA1It>
+                        <Columna1>${oea} Cuenta Ajena</Columna1>
+                        <Columna2>Texto Col 2</Columna2>
+                        <Columna3>Texto Col 3</Columna3>
+                        <Columna4>Texto Col 4</Columna4>
+                        <Columna5>${accounting.toFixed(amount_cuenta_ajena, 2)}</Columna5>
+                        <Columna6>Texto Col 6</Columna6>
+                        <Columna7>Texto Col 7</Columna7>
+                        <Columna8>Texto Col 8</Columna8>
+                    </stdTWS.stdTWSCA1.stdTWSCA1It>
+                    </stdTWSCA1>
+                  </stdTWS>`
+  
+  let xml = _xml_header + _xml_detail
+  xml = xml.replace(/\n/g,'')
+  return xml
+}
+
+const headerInvoice = (data, moment) => {
+  return `<stdTWS xmlns="FEL">
+                    <TrnEstNum>1</TrnEstNum>
+                    <TipTrnCod>FACT</TipTrnCod>
+                    <TrnNum>${data.transaction_number}</TrnNum>
+                    <TrnFec>${moment().tz('America/Guatemala').format('YYYY-MM-DD')}</TrnFec>
+                    <MonCod>GTQ</MonCod>
+                    <TrnBenConNIT>${data.nit}</TrnBenConNIT>
+                    <TrnExp>0</TrnExp>
+                    <TrnExento>0</TrnExento>
+                    <TrnFraseTipo>0</TrnFraseTipo>
+                    <TrnEscCod>0</TrnEscCod>
+                    <TrnEFACECliCod/>
+                    <TrnEFACECliNom>${data.client_name}</TrnEFACECliNom>
+                    <TrnEFACECliDir>${data.address}</TrnEFACECliDir>
+                    <TrnObs>${data.observations}</TrnObs>
+                    <TrnEmail>${data.email_client}</TrnEmail>`
+}
+
 const generateCorrelative = async (connection, query) => {
   try {
     let [num_control] = await connection.execute(query)
@@ -104,5 +160,6 @@ const calc = (theform) => {
 
 module.exports = {
   buildXML,
-  generateCorrelative
+  generateCorrelative,
+  buildXMLAllInclude
 }

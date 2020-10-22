@@ -41,6 +41,8 @@ const read = (page, type, id) => {
 }
 
 const create = (data,date,correlative) => {
+  let amount =  0
+  if(data.document !== 'TARIFA_INDIVIDUAL') amount = calculateToTal(data.items)
   
   const query = `INSERT INTO documents (client_id, nit, address, type_doc, num_control,
                   total, sub_total, total_cta, observations,status,created_at,created_by, payment_id)
@@ -49,9 +51,9 @@ const create = (data,date,correlative) => {
                   '${data.address}',
                   ${data.type_doc},
                   '${correlative ? correlative : 'A00000'}',
-                  ${data.total},
+                  ${amount === 0 ? data.total : amount},
                   ${data.sub_total},
-                  ${data.total_cta},
+                  ${amount === 0 ? data.total_cta : amount },
                   '${data.observations}',
                   1,
                   '${date}',
@@ -254,8 +256,12 @@ const invoiceAnnul = (data, date, id) => {
 }
 
 const payments = () => {
-  const query = `SELECT id, name FROM primedb.payment_types WHERE status = 'ACTIVE';
-`;
+  const query = `SELECT id, name FROM primedb.payment_types WHERE status = 'ACTIVE';`;
+  return query
+}
+
+const stores = () => {
+  const query = `SELECT * stores WHERE status = 'ACTIVE';`;
   return query
 }
 
@@ -314,6 +320,15 @@ const revertConciliation = (id,date) => {
   return query
 }
 
+//it calculte the total only for all include method
+const calculateToTal = (data) => {
+  let amount = 0
+    data.forEach(x => {
+         return amount = amount + ( x.qty * x.unitario)
+  })
+  return amount
+}
+
 module.exports = {
   post: create,
   isEmpty,
@@ -339,5 +354,6 @@ module.exports = {
   getReconciliation,
   products,
   revertPackage,
-  revertConciliation
+  revertConciliation,
+  stores
 }

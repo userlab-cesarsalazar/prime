@@ -4,7 +4,7 @@ const moment = require('moment-timezone')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 const { response } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
-const { buildXML, generateCorrelative } = require('./functions')
+const { buildXML, generateCorrelative, buildXMLAllInclude } = require('./functions')
 const xml2js = require('xml2js')
 const SOAP = require('soap');
 const AWS = require('aws-sdk')
@@ -29,19 +29,21 @@ module.exports.create = async (event, context) => {
 
     await connection.beginTransaction()
     // header invoice
+    
     const [create] = await connection.execute(storage.post(data, date, correlative))
     
     if(!create)
       throw Error('Error creating Header Invoices')
     
     data.transaction_number = create.insertId
-
+    let xml_form = ''
     //build XML
-    const xml_form = buildXML(data, moment)
+    if(data.document_type === 'TARIFA_INDIVIDUAL')
+      xml_form = buildXML(data, moment)
+    else
+      xml_form = buildXMLAllInclude(data, moment)
     
-    console.log(xml_form)
-    //throw Error('stop')
-    ///return response(200, xml_form, connection)
+    //return response(200, xml_form, connection)
   
     let invoiceData = {
       Cliente: process.env['CLIENT_FACT_DEV'],
@@ -265,6 +267,17 @@ module.exports.payments = async () => {
   }
 }
 
+module.exports.getStore = async () => {
+  try {
+    const connection = await mysql.createConnection(dbConfig)
+    
+    const [stores] =  await connection.execute(storage.stores())
+    
+    return response(200, stores, connection)
+  }catch (e) {
+    return response(400, e.message, null)
+  }
+}
 /// Accounts reconciliation Section
 
 module.exports.updateReconciliation = async (event) => {

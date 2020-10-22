@@ -222,7 +222,6 @@ function prepareToSend(user, profile) {
   if(user.client_id.charAt(0) === 'P'){
     MSG = `<p><br />Queríamos informarle que ya tenemos un paquete listo en nuestras oficinas, puede ser enviado a domicilio o entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
                 <div>
-                  Código de Cliente: ${user.client_id} <br />
                   Tracking: ${user.tracking} <br />
                   Peso en Lbs: ${user.weight} <br />
                 <div>
@@ -233,7 +232,6 @@ function prepareToSend(user, profile) {
   }else {
     MSG = `<p><br />Le informamos que se ha recibido  un paquete en su casillero y se encuentra disponivoe en Guatemala, los datos del paquete son los siguientes:<br />
                 <div>
-                  Código de Cliente: ${user.client_id} <br />
                   Tracking: ${user.tracking} <br />
                   Peso en Lbs: ${user.weight} <br />
                 <div>
@@ -274,9 +272,9 @@ module.exports.sendPrime = async event => {
     if (!params) throw 'no_params'
     let SMS = ``
     if (params.data.client_id.charAt(0) === 'P' ){
-       SMS = `PRIMENOW, informa tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}  en nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
+       SMS = `Le informamos tiene un paquete con tracking ${params.data.tracking}. En nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
     }else {
-      SMS = `Le informamos que tiene un paquete con tracking ${params.data.tracking}, Codigo de Cliente: ${params.data.client_id}. Para coordinación de entrega comunicarse al 5803-2545 o email Info@rapiditoexpress.com`
+      SMS = `Le informamos que tiene un paquete con tracking ${params.data.tracking}. Para coordinación de entrega comunicarse al 5803-2545 o email Info@rapiditoexpress.com`
     }
     console.log(params.data.client_id.charAt(0),'TXT')
     const phone = `502${params.profile[0].phone}`
