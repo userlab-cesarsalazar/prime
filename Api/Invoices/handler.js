@@ -113,7 +113,9 @@ module.exports.documents = async (event) => {
       id:null,
       type:null
     }
-    
+  
+    console.log(dbConfig);
+  
     if (event.queryStringParameters && event.queryStringParameters.type) {
       params.type = event.queryStringParameters.type
     }
@@ -267,7 +269,7 @@ module.exports.payments = async () => {
   }
 }
 
-module.exports.getStore = async () => {
+module.exports.getStores = async () => {
   try {
     const connection = await mysql.createConnection(dbConfig)
     

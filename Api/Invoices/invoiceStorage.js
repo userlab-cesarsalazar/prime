@@ -41,24 +41,26 @@ const read = (page, type, id) => {
 }
 
 const create = (data,date,correlative) => {
-  let amount =  0
-  if(data.document !== 'TARIFA_INDIVIDUAL') amount = calculateToTal(data.items)
+  let amount = 0
+  if(data.document_type !== 'TARIFA_INDIVIDUAL')
+    amount = calculateToTal(data.items)
   
   const query = `INSERT INTO documents (client_id, nit, address, type_doc, num_control,
-                  total, sub_total, total_cta, observations,status,created_at,created_by, payment_id)
+                  total, sub_total, total_cta, observations,status,created_at,created_by, payment_id, store_id)
                   VALUES ('${data.client_id}',
                   '${data.nit}',
                   '${data.address}',
                   ${data.type_doc},
                   '${correlative ? correlative : 'A00000'}',
                   ${amount === 0 ? data.total : amount},
-                  ${data.sub_total},
+                  ${amount === 0 ? data.sub_total: amount},
                   ${amount === 0 ? data.total_cta : amount },
                   '${data.observations}',
                   1,
                   '${date}',
                   '${data.created_by}',
-                  ${data.payment_type}) `
+                  ${data.payment_type},
+                  ${data.store_id}) `
   
   return query
 }
@@ -181,41 +183,53 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
+  let query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description
               FROM documents D
               INNER JOIN document_status ds on D.status = ds.id
+              INNER JOIN stores s on D.store_id = s.id
               ORDER By id DESC LIMIT 25`
   switch (params.type) {
     case 'client':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN document_status ds on D.status = ds.id
+                INNER JOIN stores s on D.store_id = s.id
                 WHERE D.client_id = '${params.id}'`
       break
     case 'control':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
+                INNER JOIN stores s on D.store_id = s.id
                 WHERE D.id = '${params.id}'`
       break
     case 'sat_number':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
+                INNER JOIN stores s on D.store_id = s.id
                 WHERE D.num_serie_sat = '${params.id}'`
+      break
+    case 'sucursal':
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
+                FROM documents D
+                INNER JOIN document_status ds on D.status = ds.id
+                INNER JOIN stores s on D.store_id = s.id
+                WHERE s.id = '${params.id}'`
       break
   }
   return query
 }
 
 const getDetail = (id) => {
-  const query = `SELECT D.id, client_id, nit, address, created_at, created_by, num_serie_sat, num_authorization_sat, num_control, total, sub_total, total_cta, observations,
+  const query = `SELECT D.id, client_id, nit, D.address, created_at, created_by, num_serie_sat, num_authorization_sat, num_control, total, sub_total, total_cta, observations,
                 transaction_number, delivery_date_sat, certification_date_date, annulation_date, reason, annul_by,
-                ds.name as status, dt.description
+                ds.name as status, dt.description,s.description
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
                 INNER JOIN document_types dt on D.type_doc = dt.id
+                INNER JOIN stores s on D.store_id = s.id
                 WHERE D.id = ${id}`;
   return query
 }
@@ -261,7 +275,7 @@ const payments = () => {
 }
 
 const stores = () => {
-  const query = `SELECT * stores WHERE status = 'ACTIVE';`;
+  const query = `SELECT * FROM stores WHERE status = 'ACTIVE';`;
   return query
 }
 
