@@ -143,11 +143,10 @@ const getConciliation = (date,store) => {
   const query = `SELECT COUNT(DISTINCT p.package_id) as package_id,  p.client_id, SUM(p.weight) as weight, d2.observations as guia, d2.total_cta, ar.status, d2.num_control, d2.id as transaction_id,
                   GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia_wron, d2.store_id
                   FROM paquetes p
-                  INNER JOIN document_details dd on p.package_id = dd.package_id AND dd.cod_service = ${store === 2 ? 5 : 1}
+                  INNER JOIN document_details dd on p.package_id = dd.package_id AND dd.cod_service = ${parseInt(store) === 2 ? 5 : 1}
                   INNER JOIN documents d2 on dd.id_document = d2.id
                   INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
                   WHERE recorded_at = '${date}'  GROUP by d2.id`
-  console.log(query);
   return query
 }
 
