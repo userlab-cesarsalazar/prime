@@ -55,9 +55,9 @@ module.exports.create = async (event, context) => {
     const log = await connection.execute(storage.saveToLog(invoiceData, date,create.insertId))
     if(!log[0].insertId)
       throw Error('Error creating log')
-    
+    console.log('making request')
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT'], invoiceData)
-    //console.log(xml_response,'ll')
+    console.log('finishing request')
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js,date)
     
     if(json.Errores)
