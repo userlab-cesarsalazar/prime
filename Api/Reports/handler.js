@@ -224,3 +224,22 @@ module.exports.byConciliation = async event => {
   }
 }
 
+module.exports.byGuiaDetail = async event => {
+  try {
+    let guia = null
+    if (event.queryStringParameters && event.queryStringParameters.guia) {
+      guia = event.queryStringParameters.guia
+    }
+  
+    if(!guia) throw Error 'Missing_guia'
+    
+    const connection = await mysql.createConnection(dbConfig)
+    const [result] = await connection.execute(storage.getGuiaDetail(guia))
+  
+    return response(200, result, connection)
+  
+  }catch (e){
+    return response(400, e.message, null)
+  }
+}
+

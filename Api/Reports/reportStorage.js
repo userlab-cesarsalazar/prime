@@ -149,6 +149,15 @@ const getConciliation = (date,store) => {
                   WHERE recorded_at = '${date}' and d2.store_id = ${parseInt(store)}  GROUP by d2.id`
   return query
 }
+const getGuiaDetail = (guia) => {
+  const query = `SELECT ar.recorded_at, ar.status, ar.document_id, p3.guia, p3.package_id, p3.client_id, p3.total_a_pagar, p3.client_id
+                  FROM paquetes p3
+                  LEFT join document_details dd on p3.package_id = dd.package_id
+                  LEFT join account_reconciliation ar on dd.id_document = ar.document_id
+                  WHERE p3.guia =${guia}
+                  GROUP BY p3.guia`
+  return query
+}
 
 module.exports = {
   read: readList,
@@ -163,5 +172,6 @@ module.exports = {
   reportByMaster,
   byMasterTotal,
   getInvoices,
-  getConciliation
+  getConciliation,
+  getGuiaDetail
 };

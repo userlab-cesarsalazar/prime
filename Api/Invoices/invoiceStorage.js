@@ -183,39 +183,44 @@ const getCorrelative = () => {
 }
 
 const get = (params) => {
-  let query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description
+  let query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description,ar.recorded_at, ar.status
               FROM documents D
               INNER JOIN document_status ds on D.status = ds.id
               INNER JOIN stores s on D.store_id = s.id
+              LEFT JOIN account_reconciliation ar on D.id = ar.document_id
               ORDER By id DESC LIMIT 25`
   switch (params.type) {
     case 'client':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description, ar.recorded_at, ar.status
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN document_status ds on D.status = ds.id
                 INNER JOIN stores s on D.store_id = s.id
+                LEFT JOIN account_reconciliation ar on D.id = ar.document_id
                 WHERE D.client_id = '${params.id}'`
       break
     case 'control':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description, ar.recorded_at, ar.status
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
                 INNER JOIN stores s on D.store_id = s.id
+                LEFT JOIN account_reconciliation ar on D.id = ar.document_id
                 WHERE D.id = '${params.id}'`
       break
     case 'sat_number':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description, ar.recorded_at, ar.status
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
                 INNER JOIN stores s on D.store_id = s.id
+                LEFT JOIN account_reconciliation ar on D.id = ar.document_id
                 WHERE D.num_serie_sat = '${params.id}'`
       break
     case 'sucursal':
-      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description
+      query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date,s.description, ar.recorded_at, ar.status
                 FROM documents D
                 INNER JOIN document_status ds on D.status = ds.id
                 INNER JOIN stores s on D.store_id = s.id
+                LEFT JOIN account_reconciliation ar on D.id = ar.document_id
                 WHERE s.id = '${params.id}'`
       break
   }
