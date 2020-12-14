@@ -55,9 +55,9 @@ module.exports.create = async (event, context) => {
     const log = await connection.execute(storage.saveToLog(invoiceData, date,create.insertId))
     if(!log[0].insertId)
       throw Error('Error creating log')
-    
+    console.log('making request')
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT'], invoiceData)
-    //console.log(xml_response,'ll')
+    console.log('finishing request')
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js,date)
     
     if(json.Errores)
@@ -69,7 +69,7 @@ module.exports.create = async (event, context) => {
       await Promise.all(data.items.map(async (x) => {
         let detail = await connection.execute(storage.createDetail(x,create.insertId))        
         //download to Inventory
-        if(x.package_id && x.cod_service === 1) await connection.execute(storage.downloadSimple(date_download,x.package_id))
+        if(x.package_id && (x.cod_service === 1 || x.cod_service === 5 || x.cod_service === 7 )) await connection.execute(storage.downloadSimple(date_download,x.package_id))
         return detail
       }));
    }
@@ -113,7 +113,9 @@ module.exports.documents = async (event) => {
       id:null,
       type:null
     }
-    
+  
+    console.log(dbConfig);
+  
     if (event.queryStringParameters && event.queryStringParameters.type) {
       params.type = event.queryStringParameters.type
     }
@@ -267,7 +269,7 @@ module.exports.payments = async () => {
   }
 }
 
-module.exports.getStore = async () => {
+module.exports.getStores = async () => {
   try {
     const connection = await mysql.createConnection(dbConfig)
     

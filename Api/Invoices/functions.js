@@ -3,6 +3,7 @@ const accounting = require('accounting-js')
 const buildXML = (data, moment) => {
   //build XML Header
   //build XML Header
+  
   let _xml_header = headerInvoice(data, moment)
   
   //build XML detail
@@ -114,7 +115,7 @@ const buildXMLAllInclude = (data, moment) => {
 
 const headerInvoice = (data, moment) => {
   return `<stdTWS xmlns="FEL">
-                    <TrnEstNum>1</TrnEstNum>
+                    <TrnEstNum>${data.store_id}</TrnEstNum>
                     <TipTrnCod>FACT</TipTrnCod>
                     <TrnNum>${data.transaction_number}</TrnNum>
                     <TrnFec>${moment().tz('America/Guatemala').format('YYYY-MM-DD')}</TrnFec>

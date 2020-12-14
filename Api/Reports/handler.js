@@ -205,14 +205,18 @@ module.exports.byInvoices = async event => {
 
 module.exports.byConciliation = async event => {
   try{
-    let date = ''    
-    
+    let date = '',
+      store = ''
     if (event.queryStringParameters && event.queryStringParameters.date) {
       date = event.queryStringParameters.date
     }
+  
+    if (event.queryStringParameters && event.queryStringParameters.store) {
+      store = event.queryStringParameters.store
+    }
     
     const connection = await mysql.createConnection(dbConfig)
-    const [result] = await connection.execute(storage.getConciliation(date))
+    const [result] = await connection.execute(storage.getConciliation(date, store))
     
     return response(200, result, connection)
   } catch (e) {

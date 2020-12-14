@@ -84,7 +84,7 @@ module.exports.create = async (event, context) => {
       let template = prepareToSend(data, userData)
       const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if(validate.test(String(userData[0].email).toLowerCase() )){
-        await notifyEmail(AWS, template)
+        //await notifyEmail(AWS, template)
       }
       
       let payload = {
@@ -217,6 +217,36 @@ module.exports.transfer = async (event, context) => {
   }
 }
 
+module.exports.transferClient = async (event, context) => {
+  try {
+    let data = JSON.parse(event.body)
+    let connection = await mysql.createConnection(dbConfig)
+
+    const [checkClients] = await connection.execute(storage.checkClient(data.client_id.toUpperCase()))
+
+    if(checkClients.length === 0){
+      connection.end()
+      throw Error ('El codigo cliente no existe.')
+    }
+
+    const [checkNewCode] = await connection.execute(storage.checkClient(data.new_client_id.toUpperCase()))
+
+    if(checkNewCode.length > 0){
+      connection.end()
+      throw Error ('El nuevo codigo existe asociado a otro client')
+    }
+    //update
+    await connection.execute(storage.updateClient(data))
+    await connection.execute(storage.updateClientPackages(data))
+    const [log] = await connection.execute(storage.logPackage(data))
+
+    return response(200, checkClients, connection)
+  } catch (e) {
+    console.log(e, 'error')
+    return response(400, e.message, null)
+  }
+}
+
 function prepareToSend(user, profile) {
   let MSG = ``
   if(user.client_id.charAt(0) === 'P'){
@@ -268,15 +298,22 @@ module.exports.sendPrime = async event => {
       : null
 
     console.log(params)
-
+    //subir codigo de los mensajes.
     if (!params) throw 'no_params'
-    let SMS = ``
-    if (params.data.client_id.charAt(0) === 'P' ){
-       SMS = `Le informamos tiene un paquete con tracking ${params.data.tracking}. En nuestras oficinas. Contactenos al telefono 2219-3432 / 33481631`
-    }else {
-      SMS = `Le informamos que tiene un paquete con tracking ${params.data.tracking}. Para coordinación de entrega comunicarse al 5803-2545 o email Info@rapiditoexpress.com`
+    
+    let SMS = ''
+    
+    switch (params.data.client_id.charAt(0)){
+      case 'P':
+        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
+        break
+      case 'T':
+        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
+        break
+      default:
+        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
     }
-    console.log(params.data.client_id.charAt(0),'TXT')
+    
     const phone = `502${params.profile[0].phone}`
 
     let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
