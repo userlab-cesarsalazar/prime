@@ -217,6 +217,36 @@ module.exports.transfer = async (event, context) => {
   }
 }
 
+module.exports.transferClient = async (event, context) => {
+  try {
+    let data = JSON.parse(event.body)
+    let connection = await mysql.createConnection(dbConfig)
+
+    const [checkClients] = await connection.execute(storage.checkClient(data.client_id.toUpperCase()))
+
+    if(checkClients.length === 0){
+      connection.end()
+      throw Error ('El codigo cliente no existe.')
+    }
+
+    const [checkNewCode] = await connection.execute(storage.checkClient(data.new_client_id.toUpperCase()))
+
+    if(checkNewCode.length > 0){
+      connection.end()
+      throw Error ('El nuevo codigo existe asociado a otro client')
+    }
+    //update
+    await connection.execute(storage.updateClient(data))
+    await connection.execute(storage.updateClientPackages(data))
+    const [log] = await connection.execute(storage.logPackage(data))
+
+    return response(200, checkClients, connection)
+  } catch (e) {
+    console.log(e, 'error')
+    return response(400, e.message, null)
+  }
+}
+
 function prepareToSend(user, profile) {
   let MSG = ``
   if(user.client_id.charAt(0) === 'P'){

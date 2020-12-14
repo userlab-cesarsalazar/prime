@@ -2,6 +2,7 @@ service: Users-pn
 
 plugins:
   - serverless-offline
+  - serverless-plugin-warmup
 
 provider:
   name: aws
@@ -29,6 +30,7 @@ package:
 
 functions:
   usersGet:
+    warmup: true
     handler: handler.read
     timeout: 30
     events:
@@ -51,6 +53,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersCreate:
+      warmup: true
       handler: handler.create
       timeout: 30
       events:
@@ -73,6 +76,7 @@ functions:
         - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersUpdate:
+      warmup: true
       handler: handler.update
       timeout: 30
       events:
@@ -95,6 +99,7 @@ functions:
         - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersDelete:
+      warmup: true
       handler: handler.delete
       timeout: 30
       events:
@@ -118,6 +123,7 @@ functions:
 
 
   usersDetail:
+      warmup: true
       handler: handler.detail
       timeout: 30
       events:
@@ -140,6 +146,7 @@ functions:
         - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersPackages:
+      warmup: true
       handler: handler.getPackagesUser
       timeout: 30
       events:
@@ -163,6 +170,7 @@ functions:
 
 
   usersProfile:
+      warmup: true
       handler: handler.profile
       timeout: 30
       events:
@@ -185,6 +193,7 @@ functions:
         - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersSearch:
+      warmup: true
       handler: handler.search
       timeout: 30
       events:
@@ -208,11 +217,13 @@ functions:
 
 
   UsersMigration:
+    warmup: true
     handler: handler.migration
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   UserPostConfirmation:
+    warmup: true
     handler: handler.postConfirmation
     events:
       - http:

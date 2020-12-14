@@ -183,9 +183,29 @@ const transfer = params => {
   return query
 }
 
+const checkClient = params => {
+  const query = `SELECT client_id,email,client_name,contact_name FROM clientes WHERE client_id = '${params}'`
+  return query
+}
+
+const updateClient = params => {
+  const query = `UPDATE clientes 
+                  SET client_id='${params.new_client_id.toUpperCase()}', 
+                  reference_id='${params.client_id.toUpperCase()}'
+                  WHERE client_id='${params.client_id.toUpperCase()}'`
+  return query
+}
+
+const updateClientPackages = params => {
+  const query = `UPDATE paquetes 
+                  SET client_id='${params.new_client_id.toUpperCase()}'                 
+                  WHERE client_id='${params.client_id.toUpperCase()}'`
+  return query
+}
+
 const logPackage = data => {
   const insert = `INSERT INTO log (entity, action, register)
-                  VALUES('PACKAGE','TRANSFER','${JSON.stringify(data)}')`
+                  VALUES('${data.new_client_id ? 'CLIENT':'PACKAGE'}','TRANSFER','${JSON.stringify(data)}')`
 
   return insert
 }
@@ -261,5 +281,8 @@ module.exports = {
   closeGuide,
   postGuide,
   getGuides,
-  getGuidesOpens
+  getGuidesOpens,
+  checkClient,
+  updateClient,
+  updateClientPackages
 }

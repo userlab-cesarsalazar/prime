@@ -207,7 +207,6 @@ module.exports.byConciliation = async event => {
   try{
     let date = '',
       store = ''
-    
     if (event.queryStringParameters && event.queryStringParameters.date) {
       date = event.queryStringParameters.date
     }

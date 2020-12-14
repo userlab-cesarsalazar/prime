@@ -11,6 +11,13 @@ let common = {
       body: JSON.stringify(body),
     }
   },
+  wakeUpLambda: (event) =>{
+    if (event.source === 'serverless-plugin-warmup') {
+      console.log('WarmUP - Lambda is warm!')
+      return true
+    }
+    return false
+  },
   notifyEmail(awsContext, emailData) {
     let mailList = emailData.mailList || ['cesar.augs@gmail.com']
     let params = {

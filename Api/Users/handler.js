@@ -6,7 +6,7 @@ const moment = require('moment-timezone')
 let jwt_decode = require('jwt-decode')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
-let { response } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+let { response, wakeUpLambda } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./userStorage')
 
 const date = moment()
@@ -14,6 +14,7 @@ const date = moment()
   .format('YYYY-MM-DD hh:mm:ss')
 
 module.exports.read = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   let page = 0
   let params = {
     name: '',
@@ -65,6 +66,7 @@ module.exports.read = async (event, context) => {
 }
 
 module.exports.detail = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
@@ -79,6 +81,7 @@ module.exports.detail = async (event, context) => {
 }
 
 module.exports.create = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     let data = JSON.parse(event.body)
 
@@ -102,6 +105,7 @@ module.exports.create = async (event, context) => {
 }
 
 module.exports.update = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
@@ -124,6 +128,7 @@ module.exports.update = async (event, context) => {
 }
 
 module.exports.delete = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
@@ -142,6 +147,7 @@ module.exports.delete = async (event, context) => {
 }
 
 module.exports.search = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     let str = '',
       filter = ''
@@ -214,6 +220,7 @@ module.exports.migration = async (event, context) => {
 }
 
 module.exports.profile = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     const token = event.headers.Authorization
 
@@ -245,6 +252,7 @@ module.exports.profileTest = async (event, context) => {
 }
 
 module.exports.getPackagesUser = async (event, context) => {
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     const token = event.headers.Authorization
 
@@ -278,6 +286,7 @@ module.exports.getPackagesUser = async (event, context) => {
 }
 module.exports.postConfirmation = async (event, context) => {
   console.log(event, 'event')
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
   try {
     if (event.triggerSource === 'PostConfirmation_ConfirmForgotPassword') return event
 
