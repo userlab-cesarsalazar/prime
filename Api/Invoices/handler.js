@@ -228,7 +228,7 @@ module.exports.annul = async (event) => {
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
     if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
-  
+    console.log(json);
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
@@ -246,7 +246,7 @@ module.exports.annul = async (event) => {
 
     await connection.execute(storage.revertPackage(id))
     await connection.execute(storage.revertConciliation(id,date))
-    
+    console.log(id,'id')
     delete serializerResponse.pdf
     delete serializerResponse.xml
     

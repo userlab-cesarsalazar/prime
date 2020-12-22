@@ -232,7 +232,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   byGuia:
-    handler: handler.byGuia
+    handler: handler.byGuiaDetail
     timeout: 30
     events:
       - http:

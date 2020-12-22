@@ -150,7 +150,7 @@ const getConciliation = (date,store) => {
   return query
 }
 const getGuiaDetail = (guia) => {
-  const query = `SELECT ar.recorded_at, ar.status, ar.document_id, p3.guia, p3.package_id, p3.client_id, p3.total_a_pagar, p3.client_id
+  const query = `SELECT ar.recorded_at, ar.status, ar.document_id, p3.guia, p3.package_id, p3.client_id, p3.total_a_pagar, p3.client_id, p3.status
                   FROM paquetes p3
                   LEFT join document_details dd on p3.package_id = dd.package_id
                   LEFT join account_reconciliation ar on dd.id_document = ar.document_id

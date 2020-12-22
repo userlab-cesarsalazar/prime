@@ -335,7 +335,8 @@ const revertPackage = (id) => {
 }
 
 const revertConciliation = (id,date) => {
-  const query = ` update account_reconciliation SET status = 'CANCELLED', recorded_at = '${date}' where document_id = ${id}`
+  const query = `update account_reconciliation SET status = 'CANCELLED', recorded_at = '${date}' where document_id = ${id}`
+  console.log(query, 'query');
   return query
 }
 

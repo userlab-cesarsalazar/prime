@@ -231,7 +231,7 @@ module.exports.byGuiaDetail = async event => {
       guia = event.queryStringParameters.guia
     }
   
-    if(!guia) throw Error 'Missing_guia'
+    if(!guia) throw Error ('Missing_guia')
     
     const connection = await mysql.createConnection(dbConfig)
     const [result] = await connection.execute(storage.getGuiaDetail(guia))
