@@ -2,6 +2,7 @@ service: Invoice-pn
 
 plugins:
   - serverless-offline
+  - serverless-plugin-warmup
 
 provider:
   name: aws
@@ -40,6 +41,7 @@ package:
 
 functions:
   invoicesCreate:
+    warmup: true
     handler: handler.create
     timeout: 30
     events:
@@ -62,6 +64,7 @@ functions:
        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getInvoices:
+    warmup: true
     handler: handler.documents
     timeout: 30
     events:
@@ -84,6 +87,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getInvoice:
+    warmup: true
     handler: handler.document
     timeout: 30
     events:
@@ -106,6 +110,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getPDF:
+    warmup: true
     handler: handler.documentPDF
     timeout: 30
     events:
@@ -128,6 +133,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   documentByClient:
+    warmup: true
     handler: handler.documentByClient
     timeout: 30
     events:
@@ -150,6 +156,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   documentCancel:
+    warmup: true
     handler: handler.annul
     timeout: 30
     events:
@@ -172,6 +179,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   payments:
+    warmup: true
     handler: handler.payments
     timeout: 30
     events:
@@ -194,6 +202,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   reconciliation:
+    warmup: true
     handler: handler.updateReconciliation
     timeout: 30
     events:
@@ -216,6 +225,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getReconciliation:
+    warmup: true
     handler: handler.reconciliation
     timeout: 30
     events:
@@ -238,6 +248,7 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getStores:
+    warmup: true
     handler: handler.getStores
     timeout: 30
     events:

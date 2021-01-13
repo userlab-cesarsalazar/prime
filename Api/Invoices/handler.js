@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise')
 const moment = require('moment-timezone')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
-const { response } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+const { response,wakeUpLambda } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 const { buildXML, generateCorrelative, buildXMLAllInclude } = require('./functions')
 const xml2js = require('xml2js')
 const SOAP = require('soap');
@@ -15,6 +15,7 @@ let storage = require('./invoiceStorage')
 
 module.exports.create = async (event, context) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     let data = JSON.parse(event.body)
     console.log(data)
     const validation = storage.isEmpty(data)
@@ -109,6 +110,7 @@ module.exports.create = async (event, context) => {
 
 module.exports.documents = async (event) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     let params = {
       id:null,
       type:null
@@ -136,6 +138,7 @@ module.exports.documents = async (event) => {
 
 module.exports.document = async (event) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
     
     if(!id)
@@ -153,6 +156,7 @@ module.exports.document = async (event) => {
 
 module.exports.documentPDF = async (event) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
     
     if(!id)
@@ -170,6 +174,7 @@ module.exports.documentPDF = async (event) => {
 
 module.exports.documentByClient = async (event) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const client = event.pathParameters && event.pathParameters.id ? event.pathParameters.id : undefined
     
     if(!client) throw Error('Missing_client')
@@ -199,6 +204,7 @@ module.exports.documentByClient = async (event) => {
 
 module.exports.annul = async (event) => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     
     let data = JSON.parse(event.body)
     //id document
@@ -259,6 +265,7 @@ module.exports.annul = async (event) => {
 
 module.exports.payments = async () => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const connection = await mysql.createConnection(dbConfig)
     
     const [documents] =  await connection.execute(storage.payments())
@@ -271,6 +278,7 @@ module.exports.payments = async () => {
 
 module.exports.getStores = async () => {
   try {
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const connection = await mysql.createConnection(dbConfig)
     
     const [stores] =  await connection.execute(storage.stores())
@@ -285,6 +293,7 @@ module.exports.getStores = async () => {
 module.exports.updateReconciliation = async (event) => {
   
   try{
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     let data = JSON.parse(event.body)
     
     const validation = storage.isEmpty(data)
@@ -311,7 +320,7 @@ module.exports.updateReconciliation = async (event) => {
 
 module.exports.reconciliation = async (event) => {
   try{
-    
+    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     let params = {
       id:null,
       type:null
