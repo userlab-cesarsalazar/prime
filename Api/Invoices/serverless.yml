@@ -2,12 +2,11 @@ service: Invoice-pn
 
 plugins:
   - serverless-offline
-  - serverless-plugin-warmup
 
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: ${file(../../commons/credentials.json):stage}
+  stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
     STAGE: ${self:provider.stage}
@@ -22,6 +21,7 @@ provider:
     USER_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_user_dev}
     PASSWORD_FACT_DEV_ID: ${file(../../commons/credentials.json):${self:provider.stage}.fact_password_dev}
     NIT_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_nit_dev}
+    ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
 
   iamRoleStatements:
     - Effect: Allow
@@ -33,6 +33,7 @@ provider:
         - SNS:Publish
       Resource: "*"
 
+
 package:
   include:
     - ../../commons/**
@@ -41,7 +42,6 @@ package:
 
 functions:
   invoicesCreate:
-    warmup: true
     handler: handler.create
     timeout: 30
     events:
@@ -64,7 +64,6 @@ functions:
        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getInvoices:
-    warmup: true
     handler: handler.documents
     timeout: 30
     events:
@@ -87,7 +86,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getInvoice:
-    warmup: true
     handler: handler.document
     timeout: 30
     events:
@@ -110,7 +108,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getPDF:
-    warmup: true
     handler: handler.documentPDF
     timeout: 30
     events:
@@ -133,7 +130,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   documentByClient:
-    warmup: true
     handler: handler.documentByClient
     timeout: 30
     events:
@@ -156,7 +152,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   documentCancel:
-    warmup: true
     handler: handler.annul
     timeout: 30
     events:
@@ -175,11 +170,28 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+      - schedule:
+          name: warmer-schedule-name
+          rate: rate(5 minutes)
+          enabled: true
+          input:
+            warmer: true
+            concurrency: 1
+
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  documentCancelSNSProd:
+    handler: handler.annulSNS
+    timeout: 900
+    events:
+      - sns:
+          topicName: annulSNSProd
+          displayName: annulSNSProd
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   payments:
-    warmup: true
     handler: handler.payments
     timeout: 30
     events:
@@ -202,7 +214,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   reconciliation:
-    warmup: true
     handler: handler.updateReconciliation
     timeout: 30
     events:
@@ -225,7 +236,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getReconciliation:
-    warmup: true
     handler: handler.reconciliation
     timeout: 30
     events:
@@ -248,7 +258,6 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getStores:
-    warmup: true
     handler: handler.getStores
     timeout: 30
     events:

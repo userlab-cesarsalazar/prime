@@ -264,11 +264,11 @@ const products = () => {
   return query
 }
 
-const invoiceAnnul = (data, date, id) => {
+const invoiceAnnul = (data, date, id, status) => {
   const query = `UPDATE documents SET reason = '${data.reason}',
                                       annulation_date = '${date}',
                                       annul_by = '${data.annulled_by}',
-                                      status = 3
+                                      status = ${status}
                                       WHERE id = ${id}`
 
   return query

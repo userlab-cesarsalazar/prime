@@ -8,14 +8,14 @@ const { buildXML, generateCorrelative, buildXMLAllInclude } = require('./functio
 const xml2js = require('xml2js')
 const SOAP = require('soap');
 const AWS = require('aws-sdk')
+const warmer = require('lambda-warmer')
 AWS.config.update({ region: 'us-east-1' })
-const sns = new AWS.SNS()
+const SNS = new AWS.SNS()
 
 let storage = require('./invoiceStorage')
 
 module.exports.create = async (event, context) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     let data = JSON.parse(event.body)
     console.log(data)
     const validation = storage.isEmpty(data)
@@ -110,7 +110,7 @@ module.exports.create = async (event, context) => {
 
 module.exports.documents = async (event) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+   
     let params = {
       id:null,
       type:null
@@ -138,7 +138,7 @@ module.exports.documents = async (event) => {
 
 module.exports.document = async (event) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+   
     const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
     
     if(!id)
@@ -156,7 +156,7 @@ module.exports.document = async (event) => {
 
 module.exports.documentPDF = async (event) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+    
     const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
     
     if(!id)
@@ -174,7 +174,6 @@ module.exports.documentPDF = async (event) => {
 
 module.exports.documentByClient = async (event) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const client = event.pathParameters && event.pathParameters.id ? event.pathParameters.id : undefined
     
     if(!client) throw Error('Missing_client')
@@ -204,8 +203,7 @@ module.exports.documentByClient = async (event) => {
 
 module.exports.annul = async (event) => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
-    
+    if (await warmer(event)) return response(200, { message: 'just warnUp me' }, null)
     let data = JSON.parse(event.body)
     //id document
     const id = event.pathParameters && event.pathParameters.id ? event.pathParameters.id : undefined
@@ -213,7 +211,7 @@ module.exports.annul = async (event) => {
     if ( validation ) throw `missing_parameter. ${validation}`
     
     const connection = await mysql.createConnection(dbConfig)
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+    
     const [documents] =  await connection.execute(storage.getDetail(id))
     
     if(documents.length === 0 ||  !documents[0].num_authorization_sat)
@@ -228,18 +226,55 @@ module.exports.annul = async (event) => {
       Numautorizacionuuid: documents[0].num_authorization_sat,
       Motivoanulacion: data.reason
     }
-  
-    console.log(invoiceData, 'sending data to annul')
     
-    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], invoiceData)
+    const dataToSns = {
+      invoice : invoiceData,
+      id: id,
+      userData: data
+    }
+    console.log(dataToSns, 'sending data to annul')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+    await connection.execute(storage.invoiceAnnul(data,date,id,1))
+    let snsParams = {
+      Message: JSON.stringify(dataToSns),
+      TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNS`,
+    }
+    await SNS.publish(snsParams).promise();
+    
+    return response(200, {message:`Procesando la anulación factura: ${id}`}, connection)
+  } catch (e) {
+    console.log(e)
+    return response(400, e.message, null)
+  }
+}
+
+module.exports.annulSNS = async (event) => {
+    
+    let body = event.body
+      ? typeof event.body === 'string'
+        ? JSON.parse(event.body)
+        : event.body
+      : event.Records
+        ? JSON.parse(event.Records[0].Sns.Message)
+        : null
+  try {
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+    
+    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], body.invoiceData)
+    
+    if(xml_response && xml_response.Envelope === null)
+      throw new Error (`Error connecting with Ecofactura`)
+      
     if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
+    console.log(xml_response,'xml_response.Respuesta');
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
     console.log(json);
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
-    await connection.execute(storage.invoiceAnnul(data,date,id))
-    
+    const connection = await mysql.createConnection(dbConfig)
+    await connection.execute(storage.invoiceAnnul(body.data,date,body.id,3))
+  
     let serializerResponse = {
       create_at: json.DTE ? json.DTE.FechaAnulacion[0] : null,
       certification_date: json.DTE.FechaCertificacion ? json.DTE.FechaCertificacion[0] : null,
@@ -248,24 +283,28 @@ module.exports.annul = async (event) => {
       xml: json.DTE.Xml[0]
     }
   
-    await connection.execute(storage.updatedToLog(serializerResponse, date,id))
-
-    await connection.execute(storage.revertPackage(id))
-    await connection.execute(storage.revertConciliation(id,date))
-    console.log(id,'id')
+    await connection.execute(storage.updatedToLog(serializerResponse, date,body.id))
+  
+    await connection.execute(storage.revertPackage(body.id))
+    await connection.execute(storage.revertConciliation(body.id,date))
+    
     delete serializerResponse.pdf
     delete serializerResponse.xml
     
     return response(200, serializerResponse, connection)
-  } catch (e) {
-    console.log(e)
-    return response(400, e.message, null)
+    
+  }catch (e){
+    const connection = await mysql.createConnection(dbConfig)
+    await connection.execute(storage.invoiceAnnul('','',body.id,2))
+    
+    console.log(e, 'annulSNS-ERROR');
+    return response(400, {message:'Error'}, connection)
   }
 }
 
+
 module.exports.payments = async () => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
     const connection = await mysql.createConnection(dbConfig)
     
     const [documents] =  await connection.execute(storage.payments())
@@ -278,7 +317,7 @@ module.exports.payments = async () => {
 
 module.exports.getStores = async () => {
   try {
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+    
     const connection = await mysql.createConnection(dbConfig)
     
     const [stores] =  await connection.execute(storage.stores())
@@ -293,7 +332,7 @@ module.exports.getStores = async () => {
 module.exports.updateReconciliation = async (event) => {
   
   try{
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+   
     let data = JSON.parse(event.body)
     
     const validation = storage.isEmpty(data)
@@ -320,7 +359,7 @@ module.exports.updateReconciliation = async (event) => {
 
 module.exports.reconciliation = async (event) => {
   try{
-    if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+    
     let params = {
       id:null,
       type:null
