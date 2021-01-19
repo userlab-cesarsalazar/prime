@@ -259,9 +259,9 @@ module.exports.annulSNS = async (event) => {
         : null
   try {
     const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-    
+    console.log(process.env['URL_DEV_FACT_CANCEL'],'url');
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], body.invoiceData)
-    
+    console.log(xml_response,'xml_response')
     if(xml_response && xml_response.Envelope === null)
       throw new Error (`Error connecting with Ecofactura`)
       
