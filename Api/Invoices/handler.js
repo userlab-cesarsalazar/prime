@@ -237,7 +237,7 @@ module.exports.annul = async (event) => {
     await connection.execute(storage.invoiceAnnul(data,date,id,1))
     let snsParams = {
       Message: JSON.stringify(dataToSns),
-      TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNS`,
+      TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNSProd`,
     }
     await SNS.publish(snsParams).promise();
     

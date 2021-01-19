@@ -267,7 +267,7 @@ const products = () => {
 const invoiceAnnul = (data, date, id, status) => {
   const query = `UPDATE documents SET reason = '${data.reason}',
                                       annulation_date = '${date}',
-                                      annul_by = '${data.annulled_by}',
+                                      annul_by = '${data.annuled_by}',
                                       status = ${status}
                                       WHERE id = ${id}`
 
