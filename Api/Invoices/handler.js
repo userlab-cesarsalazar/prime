@@ -236,6 +236,7 @@ module.exports.annul = async (event) => {
     let snsParams = {
       Message: JSON.stringify(dataToSns),
       TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNSprod`,
+      //TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNSdev`,
     }
     await SNS.publish(snsParams).promise();
     
