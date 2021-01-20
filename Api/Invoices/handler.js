@@ -115,9 +115,7 @@ module.exports.documents = async (event) => {
       id:null,
       type:null
     }
-  
-    console.log(dbConfig);
-  
+    
     if (event.queryStringParameters && event.queryStringParameters.type) {
       params.type = event.queryStringParameters.type
     }
