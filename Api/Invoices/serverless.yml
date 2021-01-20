@@ -172,7 +172,7 @@ functions:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
       - schedule:
           name: warmer-schedule-name
-          rate: rate(5 minutes)
+          rate: rate(20 minutes)
           enabled: true
           input:
             warmer: true
@@ -181,13 +181,13 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  documentCancelSNSProd:
+  documentCancelSNSprod:
     handler: handler.annulSNS
     timeout: 900
     events:
       - sns:
-          topicName: annulSNSProd
-          displayName: annulSNSProd
+          topicName: annulSNSprod
+          displayName: annulSNSprod
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 

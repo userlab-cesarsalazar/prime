@@ -237,7 +237,7 @@ module.exports.annul = async (event) => {
     await connection.execute(storage.invoiceAnnul(data,date,id,1))
     let snsParams = {
       Message: JSON.stringify(dataToSns),
-      TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNSProd`,
+      TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:annulSNSprod`,
     }
     await SNS.publish(snsParams).promise();
     
@@ -257,23 +257,24 @@ module.exports.annulSNS = async (event) => {
       : event.Records
         ? JSON.parse(event.Records[0].Sns.Message)
         : null
+  console.log(body);
   try {
     const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
     console.log(process.env['URL_DEV_FACT_CANCEL'],'url');
-    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], body.invoiceData)
-    console.log(xml_response,'xml_response')
+    const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], body.invoice)
+    console.log('eco factura response ')
     if(xml_response && xml_response.Envelope === null)
       throw new Error (`Error connecting with Ecofactura`)
       
     if(xml_response.Fault) throw new Error (`${xml_response.Fault.faultstring}`)
-    console.log(xml_response,'xml_response.Respuesta');
+    
     const json = await storage.parseToJson(xml_response.Respuesta, xml2js)
-    console.log(json);
+    
     if(json.Errores)
       throw Error(JSON.stringify(json.Errores.Error))
     
     const connection = await mysql.createConnection(dbConfig)
-    await connection.execute(storage.invoiceAnnul(body.data,date,body.id,3))
+    await connection.execute(storage.invoiceAnnul(body.userData,date,body.id,3))
   
     let serializerResponse = {
       create_at: json.DTE ? json.DTE.FechaAnulacion[0] : null,
@@ -287,10 +288,10 @@ module.exports.annulSNS = async (event) => {
   
     await connection.execute(storage.revertPackage(body.id))
     await connection.execute(storage.revertConciliation(body.id,date))
-    
+    console.log('all updated');
     delete serializerResponse.pdf
     delete serializerResponse.xml
-    
+    console.log('finished', serializerResponse);
     return response(200, serializerResponse, connection)
     
   }catch (e){
