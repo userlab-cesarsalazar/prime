@@ -6,7 +6,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: ${file(../../commons/credentials.json):stage}
+  stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
     STAGE: ${self:provider.stage}
@@ -21,6 +21,7 @@ provider:
     USER_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_user_dev}
     PASSWORD_FACT_DEV_ID: ${file(../../commons/credentials.json):${self:provider.stage}.fact_password_dev}
     NIT_FACT_DEV: ${file(../../commons/credentials.json):${self:provider.stage}.fact_nit_dev}
+    ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
 
   iamRoleStatements:
     - Effect: Allow
@@ -31,6 +32,7 @@ provider:
         - ses:SendEmail
         - SNS:Publish
       Resource: "*"
+
 
 package:
   include:
@@ -168,6 +170,27 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+      - schedule:
+          name: warmer-schedule-name
+          #name: warmerdev-schedule-name
+          rate: rate(20 minutes)
+          enabled: true
+          input:
+            warmer: true
+            concurrency: 1
+
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  #documentCancelSNSdev:
+  documentCancelSNSprod:
+    handler: handler.annulSNS
+    timeout: 900
+    events:
+      - sns:
+          topicName: annulSNSprod
+          #topicName: annulSNSdev
+          displayName: annulSNSdev
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 

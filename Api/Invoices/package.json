@@ -12,6 +12,7 @@
   "dependencies": {
     "accounting-js": "^1.1.1",
     "aws-sdk": "^2.467.0",
+    "lambda-warmer": "^1.2.1",
     "moment-timezone": "^0.5.25",
     "mysql2": "^1.6.5",
     "request": "^2.88.0",
@@ -20,5 +21,6 @@
     "soap": "^0.32.0",
     "uuid": "^3.3.2",
     "xml2js": "^0.4.23"
-  }
+  },
+  "devDependencies": {}
 }
