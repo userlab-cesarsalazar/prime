@@ -262,15 +262,15 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  sendMessagePrime:
-    handler: handler.sendPrime
-    timeout: 30
-    events:
-      - sns:
-          topicName: sms-pn
-          displayName: sms-pn
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+  #sendMessagePrime:
+  #  handler: handler.sendPrime
+  #  timeout: 30
+  #  events:
+  #    - sns:
+  #        topicName: sms-pn
+  #        displayName: sms-pn
+  #  layers:
+  #    - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   sendMessageTigo:
     handler: handler.sendSMSTigo

@@ -389,7 +389,7 @@ module.exports.sendSMSTigo = async (event) => {
 
     if (!session.access_token) throw Error("Api de tigo no responde");
 
-    console.log(params);
+    console.log(params, "params");
 
     //subir codigo de los mensajes.
     if (!params) throw "no_params";
