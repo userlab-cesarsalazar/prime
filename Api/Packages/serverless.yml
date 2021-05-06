@@ -9,7 +9,7 @@ provider:
   stage: ${file(../../commons/credentials.json):stage}
   region: us-east-1
   deploymentBucket:
-   name: ${file(../../commons/credentials.json):${self:provider.stage}.deploymentBucket}
+    name: ${file(../../commons/credentials.json):${self:provider.stage}.deploymentBucket}
 
   environment:
     STAGE: ${self:provider.stage}
@@ -18,8 +18,13 @@ provider:
     DB_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.dbPassword}
     DB_USER: ${file(../../commons/credentials.json):${self:provider.stage}.dbUser}
     DB_NAME: ${file(../../commons/credentials.json):${self:provider.stage}.dbName}
-    API_KEY_TIGO: ${file(../../commons/credentials.json):${self:provider.stage}.api_key_tigo}
     ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
+    TIGO_USER: ${file(../../commons/credentials.json):${self:provider.stage}.tigoUsername}
+    TIGO_PASSWORD: ${file(../../commons/credentials.json):${self:provider.stage}.tigoPassword}
+    TIGO_API_KEY: ${file(../../commons/credentials.json):${self:provider.stage}.ApiTipoKey}
+    TIGO_SECRET_KEY: ${file(../../commons/credentials.json):${self:provider.stage}.ApiTigoSecret}
+    URL_TIGO: ${file(../../commons/credentials.json):${self:provider.stage}.urlTigo}
+
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -57,7 +62,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageDetail:
     handler: handler.detail
@@ -79,7 +84,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageCreate:
     handler: handler.create
@@ -101,7 +106,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageUpdate:
     handler: handler.update
@@ -123,7 +128,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageDelete:
     handler: handler.delete
@@ -145,7 +150,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   packageTransfer:
     handler: handler.transfer
@@ -167,7 +172,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   transferClient:
     handler: handler.transferClient
@@ -257,15 +262,40 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  sendMessagePrime:
-    handler: handler.sendPrime
+  #sendMessagePrime:
+  #  handler: handler.sendPrime
+  #  timeout: 30
+  #  events:
+  #    - sns:
+  #        topicName: sms-pn
+  #        displayName: sms-pn
+  #  layers:
+  #    - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
+  sendMessageTigo:
+    handler: handler.sendSMSTigo
     timeout: 30
     events:
       - sns:
-          topicName: sms-pn
-          displayName: sms-pn
+          topicName: sms-${self:provider.stage}-tigo
+          displayName: sms-${self:provider.stage}-tigo
+      - http:
+          path: packages/sms
+          method: post
+          cors:
+          origin: "*"
+          allowCredentials: true
+          headers:
+            - Content-Type
+            - X-Amz-Date
+            - Authorization
+            - X-Api-Key
+            - X-Amz-Security-Token
+            - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   sesBounds:
     handler: handler.sesTopic
