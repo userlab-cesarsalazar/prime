@@ -1,105 +1,176 @@
 'use strict'
 const mysql = require('mysql2/promise')
-const moment = require('moment-timezone')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
-let { response } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+let { response, getBody, escapeFields } = require(`${
+  isOffline ? '../..' : '.'
+}/commons/utils`)
 let storage = require('./warehouseStorage')
-
-const date = moment()
-  .tz('America/Guatemala')
-  .format('YYYY-MM-DD')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
-const sns = new AWS.SNS()
 
 //Suppliers
-module.exports.getSupplier = async (event, context) => {
+module.exports.readSupplier = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    
-    const connection = await mysql.createConnection(dbConfig)
-    const [suppliers] = await connection.execute(storage.getSuppliers())
+    const [suppliers] = await connection.execute(storage.readSuppliers())
 
     return response(200, suppliers, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.createSupplier = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    let data = JSON.parse(event.body)
-    if (!data.name ) throw 'missing_parameter.'
-    const connection = await mysql.createConnection(dbConfig)
-    const [suppliers] = await connection.execute(storage.createSupplier(data))
-    
+    const requiredFields = ['code', 'name', 'phone', 'address']
+    const body = escapeFields(getBody(event))
+    const errorFields = requiredFields.filter(k => !body[k])
+
+    if (errorFields.length > 0) {
+      return await response(
+        400,
+        { message: `The fields ${errorFields.join(', ')} are required` },
+        connection
+      )
+    }
+    const [suppliers] = await connection.execute(storage.createSupplier(body))
+
     return response(200, suppliers, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
-module.exports.putSuppliers = async (event, context) => {
+module.exports.updateSuppliers = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    let data = JSON.parse(event.body)
-    const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
-    
-    if (!data.name || !id) throw 'missing_parameter.'
-    const connection = await mysql.createConnection(dbConfig)
-    const [Suppliers] = await connection.execute(storage.putSuppliers(data, id))
-    
+    const id =
+      event.pathParameters && event.pathParameters.id
+        ? JSON.parse(event.pathParameters.id)
+        : undefined
+    const requiredFields = ['name', 'phone', 'address']
+    const body = escapeFields(getBody(event))
+    const errorFields = requiredFields.filter(k => !body[k])
+
+    if (errorFields.length > 0) {
+      return await response(
+        400,
+        { message: `The fields ${errorFields.join(', ')} are required` },
+        connection
+      )
+    }
+
+    const [Suppliers] = await connection.execute(
+      storage.updateSuppliers(body, id)
+    )
+
     return response(200, Suppliers, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
+  }
+}
+
+module.exports.deleteSupplier = async event => {
+  const connection = await mysql.createConnection(dbConfig)
+  try {
+    const id =
+      event.pathParameters && event.pathParameters.id
+        ? JSON.parse(event.pathParameters.id)
+        : undefined
+
+    const [supplier] = await connection.execute(storage.deleteSupplier(id))
+
+    return await response(200, supplier, connection)
+  } catch (error) {
+    console.log(error)
+    return await response(400, error, connection)
   }
 }
 
 //Carriers
-module.exports.getCarries = async (event, context) => {
+module.exports.readCarries = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    
-    const connection = await mysql.createConnection(dbConfig)
-    const [carries] = await connection.execute(storage.getCarries())
-    
-    return response(200, carries, connection)
+    const [carries] = await connection.execute(storage.readCarries())
+
+    return response(200, { message: carries }, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.createCarrie = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    let data = JSON.parse(event.body)
-    if (!data.name ) throw 'missing_parameter.'
-    const connection = await mysql.createConnection(dbConfig)
-    const [carries] = await connection.execute(storage.createCarries(data))
-    
+    const requiredFields = ['code', 'name']
+    const body = escapeFields(getBody(event))
+    const errorFields = requiredFields.filter(k => !body[k])
+
+    if (errorFields.length > 0) {
+      return await response(
+        400,
+        { message: `The fields ${errorFields.join(', ')} are required` },
+        connection
+      )
+    }
+
+    const [carries] = await connection.execute(storage.createCarries(body))
+
     return response(200, carries, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
-module.exports.putCarrie = async (event, context) => {
+module.exports.updateCarrie = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
-    let data = JSON.parse(event.body)
-    const id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
-    
-    if (!data.name || !id) throw 'missing_parameter.'
-    const connection = await mysql.createConnection(dbConfig)
-    const [carries] = await connection.execute(storage.putCarrie(data, id))
-    
+    const id =
+      event.pathParameters && event.pathParameters.id
+        ? JSON.parse(event.pathParameters.id)
+        : undefined
+    const requiredFields = ['name']
+    const body = escapeFields(getBody(event))
+    const errorFields = requiredFields.filter(k => !body[k])
+
+    if (errorFields.length > 0) {
+      return await response(
+        400,
+        { message: `The fields ${errorFields.join(', ')} are required` },
+        connection
+      )
+    }
+
+    const [carries] = await connection.execute(storage.updateCarrie(body, id))
+
     return response(200, carries, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
+module.exports.deleteCarrie = async event => {
+  const connection = await mysql.createConnection(dbConfig)
+  try {
+    const id =
+      event.pathParameters && event.pathParameters.id
+        ? JSON.parse(event.pathParameters.id)
+        : undefined
 
+    const [carries] = await connection.execute(storage.deleteCarries(id))
+
+    return await response(200, carries, connection)
+  } catch (error) {
+    console.log(error)
+    return await response(400, error, connection)
+  }
+}
