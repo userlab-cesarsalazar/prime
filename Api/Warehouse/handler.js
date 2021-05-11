@@ -31,12 +31,9 @@ module.exports.createSupplier = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
+
     const [suppliers] = await connection.execute(storage.createSupplier(body))
 
     return response(200, suppliers, connection)
@@ -58,11 +55,7 @@ module.exports.updateSuppliers = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
 
     const [Suppliers] = await connection.execute(
@@ -114,11 +107,7 @@ module.exports.createCarrie = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
 
     const [carries] = await connection.execute(storage.createCarries(body))
@@ -142,11 +131,7 @@ module.exports.updateCarrie = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
 
     const [carries] = await connection.execute(storage.updateCarrie(body, id))

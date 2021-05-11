@@ -31,11 +31,7 @@ module.exports.create = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
     const [destinations] = await connection.execute(
       storage.createDestination(body)
@@ -60,11 +56,7 @@ module.exports.update = async (event, context) => {
     const errorFields = requiredFields.filter(k => !body[k])
 
     if (errorFields.length > 0) {
-      return await response(
-        400,
-        { message: `The fields ${errorFields.join(', ')} are required` },
-        connection
-      )
+      throw new Error(`The fields ${errorFields.join(', ')} are required`)
     }
 
     const [destinations] = await connection.execute(
