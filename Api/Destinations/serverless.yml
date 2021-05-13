@@ -36,12 +36,12 @@ package:
     - node_modules/**
 
 functions:
-  supplierRead:
-    handler: handler.readSupplier
+  destinationsRead:
+    handler: handler.read
     timeout: 30
     events:
       - http:
-          path: suppliers
+          path: destinations
           method: get
           cors:
             origin: '*'
@@ -58,12 +58,12 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  supplierCreate:
-    handler: handler.createSupplier
+  destinationsCreate:
+    handler: handler.create
     timeout: 30
     events:
       - http:
-          path: suppliers
+          path: destinations
           method: post
           cors:
             origin: '*'
@@ -80,12 +80,12 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  supplierUpdate:
-    handler: handler.updateSuppliers
+  destinationsUpdate:
+    handler: handler.update
     timeout: 30
     events:
       - http:
-          path: suppliers/{id}
+          path: destinations/{id}
           method: put
           cors:
             origin: '*'
@@ -102,100 +102,12 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-  supplierDelete:
-    handler: handler.deleteSupplier
+  destinationsDelete:
+    handler: handler.delete
     timeout: 30
     events:
       - http:
-          path: suppliers/{id}
-          method: delete
-          cors:
-            origin: '*'
-            allowCredentials: true
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-          authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
-  carrierRead:
-    handler: handler.readCarries
-    timeout: 30
-    events:
-      - http:
-          path: carries
-          method: get
-          cors:
-            origin: '*'
-            allowCredentials: true
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-          authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
-  carrierCreate:
-    handler: handler.createCarrie
-    timeout: 30
-    events:
-      - http:
-          path: carries
-          method: post
-          cors:
-            origin: '*'
-            allowCredentials: true
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-          authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
-  carrierUpdate:
-    handler: handler.updateCarrie
-    timeout: 30
-    events:
-      - http:
-          path: carries/{id}
-          method: put
-          cors:
-            origin: '*'
-            allowCredentials: true
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-          authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
-  carrierDelete:
-    handler: handler.deleteCarrie
-    timeout: 30
-    events:
-      - http:
-          path: carries/{id}
+          path: destinations/{id}
           method: delete
           cors:
             origin: '*'
