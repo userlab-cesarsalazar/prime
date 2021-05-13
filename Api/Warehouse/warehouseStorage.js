@@ -1,5 +1,13 @@
-const getSuppliers = () => {
-  
+const createSupplier = data => {
+  const query = ` INSERT INTO suppliers
+                  (name, address, code, phone, status)
+                  VALUES('${data.name.toUpperCase()}', '${data.address}', '${
+    data.code
+  }', '${data.phone}', 'ACTIVE');`
+  return query
+}
+
+const readSuppliers = () => {
   const query = ` SELECT *
                   FROM suppliers A
                   WHERE status = 'ACTIVE'
@@ -7,44 +15,50 @@ const getSuppliers = () => {
   return query
 }
 
-const createSupplier = (data) => {
-  
-  const query = ` INSERT INTO suppliers
-                  (name, description, status)
-                  VALUES('${data.name.toUpperCase()}', '${data.description}', 'ACTIVE');`
+const updateSuppliers = (data, id) => {
+  const query = `UPDATE suppliers SET name='${data.name.toUpperCase()}', address='${
+    data.address
+  }', phone='${data.phone}' WHERE id=${id};`
   return query
 }
 
-const putSuppliers = (data,id) => {
-  const query = `UPDATE suppliers SET name='${data.name}', description='${data.description}', status='ACTIVE' WHERE id=${id};`
+const deleteSupplier = id => {
+  const query = `UPDATE suppliers SET status = 'INACTIVE' WHERE id = '${id}'`
   return query
 }
 
-const createCarries = (data) => {
-  
-  const query = ` INSERT INTO carriers (name, status) VALUES('${data.name.toUpperCase()}', 'ACTIVE');`
+const createCarries = data => {
+  const query = ` INSERT INTO carriers (name, status, code) VALUES('${data.name.toUpperCase()}', 'ACTIVE', '${
+    data.code
+  }');`
   return query
 }
 
-const putCarrie = (data,id) => {
-  const query = `UPDATE carriers SET name='${data.name}', status='${data.status}' WHERE id=${id}`
-  return query
-}
-
-const getCarries = () => {
-  
+const readCarries = () => {
   const query = ` SELECT *
-                  FROM carriers A
+                  FROM carriers
                   WHERE status = 'ACTIVE'
-                  ORDER by A.id DESC`
+                  ORDER by id DESC`
+  return query
+}
+
+const updateCarrie = (data, id) => {
+  const query = `UPDATE carriers SET name='${data.name.toUpperCase()}' WHERE id=${id}`
+  return query
+}
+
+const deleteCarries = id => {
+  const query = `UPDATE carriers SET status = 'INACTIVE' WHERE id = '${id}'`
   return query
 }
 
 module.exports = {
-  getSuppliers,
-  getCarries,
   createSupplier,
+  readSuppliers,
+  updateCarrie,
+  deleteSupplier,
   createCarries,
-  putCarrie,
-  putSuppliers
+  readCarries,
+  updateSuppliers,
+  deleteCarries,
 }
