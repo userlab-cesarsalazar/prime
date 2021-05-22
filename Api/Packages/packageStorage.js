@@ -61,7 +61,7 @@ const create = data => {
   if (data.entrega === 'Entrega a Domicilio') {
     status = 'Listo para Entrega a Domicilio'
   }
-  
+
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
                 entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva)
                   VALUES ('${data.tracking}',
@@ -81,7 +81,7 @@ const create = data => {
                   '${data.guia ? data.guia : ''}',
                   ${data.tasa ? data.tasa : 0.00},
                   ${data.iva ? data.iva : 0.00})`
-  
+
   return query
 }
 
@@ -102,7 +102,7 @@ const update = (checkPackage, data, date) => {
   if (checkPackage.entrega === 'Entrega a Domicilio') {
     status = 'Listo para Entrega a Domicilio'
   }
-  
+
   const query = `UPDATE paquetes SET weight = '${data.weight}',
                   description = '${data.description}',
                   status = '${status}',
@@ -137,7 +137,7 @@ const updateStatus = (data, package_id, date, status) => {
                   poliza = '${data.poliza}',
                   costo_producto = ${data.cost}
                   WHERE package_id = ${parseInt(package_id, 10)};`
-  
+
   return query
 }
 
@@ -174,7 +174,7 @@ const saveRemaining = (data, date) => {
 
 const transfer = params => {
   const moment = require('moment-timezone')
-  
+
   const query = ` UPDATE paquetes 
                 SET total_a_pagar = ${params.total}, client_id = '${params.client_id}' ,
                 ent_date = '${params.ent_date === '0000-00-00' ? '0000-00-00' : moment(params.ent_date).tz('America/Guatemala').format('YYYY-MM-DD')}'
@@ -231,7 +231,7 @@ const checkGuide = ( data ) => {
 const postGuide = ( data ) => {
   const query = `INSERT INTO guides (master, poliza, status)
                   VALUES('${data.master}','${data.poliza}','ACTIVO')`;
-  
+
   return query
 }
 
@@ -243,7 +243,7 @@ const closeGuide = (data, date) => {
 }
 
 const getGuides = ( ) => {
-  
+
   const query = `SELECT g.id as id, p.master as master, p.poliza as poliza, g.status as status, COUNT(p.package_id) as paquetes
                   FROM guides g
                   LEFT JOIN paquetes p on g.master = p.master AND g.poliza = p.poliza
@@ -253,7 +253,7 @@ const getGuides = ( ) => {
 }
 
 const getGuidesOpens = ( ) => {
-  
+
   const query = ` SELECT * FROM 
                   FROM guides g
                   WHERE status = 'ACTIVE'
@@ -261,7 +261,7 @@ const getGuidesOpens = ( ) => {
   return query
 }
 
-
+const getPackagesByManifest = manifest_id => `SELECT * FROM paquetes WHERE manifest_id = ${manifest_id}`
 
 module.exports = {
   get: read,
@@ -284,5 +284,6 @@ module.exports = {
   getGuidesOpens,
   checkClient,
   updateClient,
-  updateClientPackages
+  updateClientPackages,
+  getPackagesByManifest
 }

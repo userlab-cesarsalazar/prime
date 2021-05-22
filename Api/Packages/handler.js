@@ -3,7 +3,7 @@ const mysql = require("mysql2/promise");
 const moment = require("moment-timezone");
 const isOffline = process.env["IS_OFFLINE"];
 const { dbConfig } = require(`${isOffline ? "../.." : "."}/commons/dbConfig`);
-let { response, notifyEmail } = require(`${
+let { response, getBody, escapeFields } = require(`${
   isOffline ? "../.." : "."
 }/commons/utils`);
 let storage = require("./packageStorage");
@@ -528,3 +528,23 @@ module.exports.closeGuides = async (event, context) => {
     return response(400, e, null);
   }
 };
+
+module.exports.getPackagesByManifestId = async (event) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig)
+    try {
+      const id =
+          event.pathParameters && event.pathParameters.manifest_id
+              ? JSON.parse(event.pathParameters.manifest_id)
+              : undefined
+
+      const [packages] = await connection.execute(storage.getPackagesByManifest(id))
+
+      return response(200, packages[0], connection)
+    } catch (e) {
+      return response(400, e, connection)
+    }
+  } catch (error) {
+
+  }
+}

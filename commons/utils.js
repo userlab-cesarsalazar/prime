@@ -40,11 +40,14 @@ let common = {
       .promise()
   },
   getBody: event => {
-    return event.body
-      ? typeof event.body === 'string'
+    const postBody = typeof event.body === 'string'
         ? JSON.parse(event.body)
         : event.body
-      : JSON.parse(event.Records[0].Sns.Message)
+    const snsBody = event.Records ? JSON.parse(event.Records[0].Sns.Message) : {}
+
+    return event.body
+      ? postBody
+      : snsBody
   },
   escapeFields: (data = {}, fieldsToExclude = []) => {
     const escapeStr = str => {

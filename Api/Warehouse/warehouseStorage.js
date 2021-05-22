@@ -1,64 +1,97 @@
 const createSupplier = data => {
-  const query = ` INSERT INTO suppliers
+    const query = ` INSERT INTO suppliers
                   (name, address, code, phone, status)
                   VALUES('${data.name.toUpperCase()}', '${data.address}', '${
     data.code
   }', '${data.phone}', 'ACTIVE');`
-  return query
+    return query
 }
 
 const readSuppliers = () => {
-  const query = ` SELECT *
+    const query = ` SELECT *
                   FROM suppliers A
                   WHERE status = 'ACTIVE'
                   ORDER by A.id DESC`
-  return query
+    return query
 }
 
 const updateSuppliers = (data, id) => {
-  const query = `UPDATE suppliers SET name='${data.name.toUpperCase()}', address='${
+    const query = `UPDATE suppliers SET name='${data.name.toUpperCase()}', address='${
     data.address
   }', phone='${data.phone}' WHERE id=${id};`
-  return query
+    return query
 }
 
 const deleteSupplier = id => {
-  const query = `UPDATE suppliers SET status = 'INACTIVE' WHERE id = '${id}'`
-  return query
+    const query = `UPDATE suppliers SET status = 'INACTIVE' WHERE id = '${id}'`
+    return query
 }
 
 const createCarries = data => {
-  const query = ` INSERT INTO carriers (name, status, code) VALUES('${data.name.toUpperCase()}', 'ACTIVE', '${
+    const query = ` INSERT INTO carriers (name, status, code) VALUES('${data.name.toUpperCase()}', 'ACTIVE', '${
     data.code
   }');`
-  return query
+    return query
 }
 
 const readCarries = () => {
-  const query = ` SELECT *
+    const query = ` SELECT *
                   FROM carriers
                   WHERE status = 'ACTIVE'
                   ORDER by id DESC`
-  return query
+    return query
 }
 
 const updateCarrie = (data, id) => {
-  const query = `UPDATE carriers SET name='${data.name.toUpperCase()}' WHERE id=${id}`
-  return query
+    const query = `UPDATE carriers SET name='${data.name.toUpperCase()}' WHERE id=${id}`
+    return query
 }
 
 const deleteCarries = id => {
-  const query = `UPDATE carriers SET status = 'INACTIVE' WHERE id = '${id}'`
-  return query
+    const query = `UPDATE carriers SET status = 'INACTIVE' WHERE id = '${id}'`
+    return query
 }
 
+const findMaxPaqueteId = () => 'SELECT MAX(guia) as id from paquetes'
+
+const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva, supplier_id, carrier_id)
+                  VALUES ('${data.tracking}',
+                  '${data.client_id}',
+                  '${data.weight}',
+                  '${data.package_description}',                  
+                  ${data.category_id ? data.category_id : 1},
+                  ${data.total},
+                  '${data.ing_date}',
+                  'En Warehouse',
+                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0},
+                  ${data.dai ? data.dai : 0.0},
+                  ${data.cif ? data.cif : 0.0},
+                  ${data.importe ? data.importe : 0.0},
+                  '${data.pn_master ? data.pn_master.master : ''}',
+                  '${data.pn_master ? data.pn_master.poliza : ''}',
+                  '${guia}',
+                  ${data.tasa ? data.tasa : 0.0},
+                  ${data.iva ? data.iva : 0.0},
+                  ${data.supplier_id},
+                  ${data.carrier_id});`
+
+const createWarehouseEntryDetail = (data, package_id, date, status) => `INSERT INTO paquetes_detail (package_id, status, fecha_registro, client_id, tba)
+                  VALUES (${package_id},${status},'${date}','${data.client_id}',0)`
+
+const findManifestById = manifest_id => `SELECT manifest_id FROM manifest WHERE manifest_id = ${manifest_id} AND status = 'OPEN'`
+
 module.exports = {
-  createSupplier,
-  readSuppliers,
-  updateCarrie,
-  deleteSupplier,
-  createCarries,
-  readCarries,
-  updateSuppliers,
-  deleteCarries,
+    createSupplier,
+    readSuppliers,
+    updateCarrie,
+    deleteSupplier,
+    createCarries,
+    readCarries,
+    updateSuppliers,
+    deleteCarries,
+    createWarehouseEntry,
+    createWarehouseEntryDetail,
+    findMaxPaqueteId,
+    findManifestById
 }
