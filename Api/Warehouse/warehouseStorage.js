@@ -52,7 +52,7 @@ const deleteCarries = id => {
     return query
 }
 
-const findMaxPaqueteId = () => 'SELECT MAX(guia) as id from paquetes'
+const findMaxPaqueteId = () => 'SELECT IFNULL(MAX(CONVERT(guia, SIGNED INTEGER)), 0) AS id FROM paquetes'
 
 const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
                 entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva, supplier_id, carrier_id)
