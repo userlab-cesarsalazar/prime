@@ -52,7 +52,7 @@ const detail = package_id => {
   return query
 }
 
-const create = data => {
+const create = (data,newGuiaId) => {
   let status = 'Recoger en Prime'
   if (data.status) {
     status = data.status
@@ -78,7 +78,7 @@ const create = data => {
                   ${data.importe ? data.importe : 0.00 },
                   '${data.pn_master.master ? data.pn_master.master  : '' }',
                   '${data.pn_master.poliza ? data.pn_master.poliza : '' }',
-                  '${data.guia ? data.guia : ''}',
+                  '${newGuiaId}',
                   ${data.tasa ? data.tasa : 0.00},
                   ${data.iva ? data.iva : 0.00})`
 

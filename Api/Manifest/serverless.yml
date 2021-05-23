@@ -32,8 +32,8 @@ provider:
 package:
   include:
     - ../../commons/**
-  exclude:
-    - node_modules/**
+#  exclude:
+#    - node_modules/**
 
 functions:
   manifestRead:
@@ -55,8 +55,8 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+#    layers:
+#      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   manifestCreate:
     handler: handler.createManifest
@@ -77,8 +77,8 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+#    layers:
+#      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   manifestUpdate:
     handler: handler.updateManifest
@@ -99,8 +99,8 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+#    layers:
+#      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   exportManifest:
     handler: handler.exportManifest
@@ -121,8 +121,8 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+#    layers:
+#      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   maxManifest:
     handler: handler.readMaxManifest
@@ -143,5 +143,5 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-    layers:
-      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+#    layers:
+#      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}

@@ -86,8 +86,11 @@ module.exports.create = async (event, context) => {
         );
     } else {
       console.log("create", data);
+      const [result] = await connection.execute(storage.findMaxPaqueteId())
+
+      const newGuiaId = parseInt(result[0].id) + 1
       //create
-      const [save] = await connection.execute(storage.post(data));
+      const [save] = await connection.execute(storage.post(data,newGuiaId));
       if (save)
         await connection.execute(storage.postDetail(data, save.insertId, date));
     }
