@@ -55,7 +55,7 @@ const deleteCarries = id => {
 const findMaxPaqueteId = () => 'SELECT IFNULL(MAX(CONVERT(guia, SIGNED INTEGER)), 0) AS id FROM paquetes'
 
 const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
-                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva, supplier_id, carrier_id)
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva, supplier_id, carrier_id, manifest_id, destination_id)
                   VALUES ('${data.tracking}',
                   '${data.client_id}',
                   '${data.weight}',
@@ -64,7 +64,7 @@ const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, cli
                   ${data.total},
                   '${data.ing_date}',
                   'En Warehouse',
-                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0},
+                  0,0,0,'NEW_SYSTEM',${data.invoice_price ? data.invoice_price : 0},
                   ${data.dai ? data.dai : 0.0},
                   ${data.cif ? data.cif : 0.0},
                   ${data.importe ? data.importe : 0.0},
@@ -74,7 +74,9 @@ const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, cli
                   ${data.tasa ? data.tasa : 0.0},
                   ${data.iva ? data.iva : 0.0},
                   ${data.supplier_id},
-                  ${data.carrier_id});`
+                  ${data.carrier_id},
+                  ${data.manifest_id},
+                  ${data.destination_id});`
 
 const createWarehouseEntryDetail = (data, package_id, date, status) => `INSERT INTO paquetes_detail (package_id, status, fecha_registro, client_id, tba)
                   VALUES (${package_id},${status},'${date}','${data.client_id}',0)`

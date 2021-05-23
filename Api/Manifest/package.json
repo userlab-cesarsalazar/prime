@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.467.0",
+    "exceljs": "^4.2.1",
     "moment-timezone": "^0.5.25",
     "mysql2": "^1.6.5",
     "request": "^2.88.0",

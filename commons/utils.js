@@ -11,6 +11,21 @@ let common = {
       body: JSON.stringify(body),
     }
   },
+  fileResponse: (status, body, connection, manifestName) => {
+    if (connection) connection.end()
+
+    return {
+      statusCode: status,
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename=manifest-${manifestName}.xlsx`,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: body,
+      isBase64Encoded: true
+    }
+  },
   wakeUpLambda: event => {
     if (event.source === 'serverless-plugin-warmup') {
       console.log('WarmUP - Lambda is warm!')
