@@ -9,9 +9,8 @@ const readManifest = () =>  ` SELECT *
 
 const getMAXManifest = () => `SELECT MAX(id) from manifest`
 
-const updateManifest = (data, id) => `UPDATE manifest SET description='${data.description.toUpperCase()}', status='${
-        data.status
-    }', phone='${data.phone}' WHERE id=${id};`
+const updateManifest = (data, id) => `UPDATE manifest SET description='${data.description.toUpperCase()}', 
+                                      status='${data.status}' WHERE id=${id};`
 
 module.exports =  {
     createManifest,

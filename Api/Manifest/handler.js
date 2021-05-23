@@ -15,7 +15,7 @@ module.exports.readManifest = async (event, context) => {
     try {
         const [manifests] = await connection.execute(storage.readManifest())
 
-        return response(200, manifests[0], connection)
+        return response(200, manifests, connection)
     } catch (e) {
         return response(400, e, connection)
     }
@@ -56,11 +56,22 @@ module.exports.updateManifest = async (event, context) => {
             throw new Error(`The fields ${errorFields.join(', ')} are required`)
         }
 
-        const [Manifest] = await connection.execute(
+        const [manifest] = await connection.execute(
             storage.updateManifest(body, id)
         )
 
-        return response(200, Manifest, connection)
+        return response(200, manifest, connection)
+    } catch (e) {
+        return response(400, e, connection)
+    }
+}
+
+module.exports.readMaxManifest = async (event, context) => {
+    const connection = await mysql.createConnection(dbConfig)
+    try {
+        const [manifest] = await connection.execute(storage.getMAXManifest())
+
+        return response(200, manifest, connection)
     } catch (e) {
         return response(400, e, connection)
     }
