@@ -195,13 +195,11 @@ module.exports.createWarehouseEntry = async event => {
 
     const newGuiaId = parseInt(result[0].id) + 1
 
-    console.log('storage.createWarehouseEntry(body,newGuiaId) ',storage.createWarehouseEntry(body,newGuiaId))
-
     const [wareHouse] = await connection.execute(storage.createWarehouseEntry(body,newGuiaId))
 
-    return await response(200, wareHouse[0], connection)
+    return await response(200, wareHouse, connection)
   } catch (error) {
-    console.log(error)
+
     const message = error.message ? error.message : error
 
     return await response(400, { error: message }, connection)

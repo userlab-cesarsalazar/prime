@@ -10,7 +10,7 @@ let storage = require('./warehouseStorage')
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
 
-module.exports.readManifesto = async (event, context) => {
+module.exports.readManifest = async (event, context) => {
     const connection = await mysql.createConnection(dbConfig)
     try {
         const [manifests] = await connection.execute(storage.readManifesto())
@@ -33,9 +33,9 @@ module.exports.createManifest = async (event, context) => {
             throw new Error(`The fields ${errorFields.join(', ')} are required`)
         }
 
-        const [suppliers] = await connection.execute(storage.createManifest(body))
+        const [manifest] = await connection.execute(storage.createManifest(body))
 
-        return response(200, suppliers, connection)
+        return response(200, manifest, connection)
     } catch (e) {
         return response(400, e, connection)
     }
@@ -56,11 +56,11 @@ module.exports.updateManifest = async (event, context) => {
             throw new Error(`The fields ${errorFields.join(', ')} are required`)
         }
 
-        const [Suppliers] = await connection.execute(
+        const [Manifest] = await connection.execute(
             storage.updateManifest(body, id)
         )
 
-        return response(200, Suppliers, connection)
+        return response(200, Manifest, connection)
     } catch (e) {
         return response(400, e, connection)
     }
