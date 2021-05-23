@@ -5,7 +5,7 @@ const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response, getBody, escapeFields } = require(`${
     isOffline ? '../..' : '.'
 }/commons/utils`)
-let storage = require('./warehouseStorage')
+let storage = require('./manifestoStorage')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -13,7 +13,7 @@ AWS.config.update({ region: 'us-east-1' })
 module.exports.readManifest = async (event, context) => {
     const connection = await mysql.createConnection(dbConfig)
     try {
-        const [manifests] = await connection.execute(storage.readManifesto())
+        const [manifests] = await connection.execute(storage.readManifest())
 
         return response(200, manifests[0], connection)
     } catch (e) {
@@ -64,4 +64,8 @@ module.exports.updateManifest = async (event, context) => {
     } catch (e) {
         return response(400, e, connection)
     }
+}
+
+module.exports.exportManifest = async () => {
+
 }
