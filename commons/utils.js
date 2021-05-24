@@ -11,6 +11,21 @@ let common = {
       body: JSON.stringify(body),
     }
   },
+  fileResponse: (status, body, connection, manifestName) => {
+    if (connection) connection.end()
+
+    return {
+      statusCode: status,
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename=manifest-${manifestName}.xlsx`,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
+      body: body,
+      isBase64Encoded: true
+    }
+  },
   wakeUpLambda: event => {
     if (event.source === 'serverless-plugin-warmup') {
       console.log('WarmUP - Lambda is warm!')
@@ -40,11 +55,14 @@ let common = {
       .promise()
   },
   getBody: event => {
-    return event.body
-      ? typeof event.body === 'string'
+    const postBody = typeof event.body === 'string'
         ? JSON.parse(event.body)
         : event.body
-      : JSON.parse(event.Records[0].Sns.Message)
+    const snsBody = event.Records ? JSON.parse(event.Records[0].Sns.Message) : {}
+
+    return event.body
+      ? postBody
+      : snsBody
   },
   escapeFields: (data = {}, fieldsToExclude = []) => {
     const escapeStr = str => {

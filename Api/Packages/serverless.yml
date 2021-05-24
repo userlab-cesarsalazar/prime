@@ -297,6 +297,28 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
+  getPackagesByManifestId:
+    handler: handler.getPackagesByManifestId
+    timeout: 30
+    events:
+      - http:
+          path: packages/manifest/{manifest_id}
+          method: get
+          cors:
+          origin: "*"
+          allowCredentials: true
+          headers:
+            - Content-Type
+            - X-Amz-Date
+            - Authorization
+            - X-Api-Key
+            - X-Amz-Security-Token
+            - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+
   sesBounds:
     handler: handler.sesTopic
     timeout: 30
