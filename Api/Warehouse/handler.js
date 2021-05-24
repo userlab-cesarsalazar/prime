@@ -174,8 +174,7 @@ module.exports.createWarehouseEntry = async event => {
       'tracking',
       'manifest_id',
       'weight',
-      'ing_date',
-      'total'
+      'ing_date'
     ]
 
     const body = escapeFields(getBody(event))
