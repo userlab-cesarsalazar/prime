@@ -61,7 +61,7 @@ const createWarehouseEntry = (data,guia) => `INSERT INTO paquetes (tracking, cli
                   '${data.weight}',
                   '${data.package_description}',                  
                   ${data.category_id ? data.category_id : 1},
-                  ${data.total},
+                  ${data.total_a_pagar ? data.total_a_pagar : 0},
                   '${data.ing_date}',
                   'En Warehouse',
                   0,0,0,'NEW_SYSTEM',${data.invoice_price ? data.invoice_price : 0},
