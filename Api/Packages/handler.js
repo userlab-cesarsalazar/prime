@@ -1,159 +1,111 @@
-"use strict";
-const mysql = require("mysql2/promise");
-const moment = require("moment-timezone");
-const isOffline = process.env["IS_OFFLINE"];
-const { dbConfig } = require(`${isOffline ? "../.." : "."}/commons/dbConfig`);
-let { response, getBody, escapeFields } = require(`${
-  isOffline ? "../.." : "."
-}/commons/utils`);
-let storage = require("./packageStorage");
-const request = require("request");
-const date = moment().tz("America/Guatemala").format("YYYY-MM-DD");
-const { openSession } = require("./functions");
+'use strict'
+const mysql = require('mysql2/promise')
+const moment = require('moment-timezone')
+const isOffline = process.env['IS_OFFLINE']
+const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
+let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+let storage = require('./packageStorage')
+const request = require('request')
+const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+const { openSession } = require('./functions')
 
-const AWS = require("aws-sdk");
-AWS.config.update({ region: "us-east-1" });
-const sns = new AWS.SNS();
+const AWS = require('aws-sdk')
+AWS.config.update({ region: 'us-east-1' })
+const sns = new AWS.SNS()
 
 module.exports.read = async (event, context) => {
   try {
-    let page = 0;
-    let type = null;
-    let id = null;
+    let page = 0
+    let type = null
+    let id = null
 
     if (event.queryStringParameters && event.queryStringParameters.page) {
-      page = event.queryStringParameters.page;
+      page = event.queryStringParameters.page
     }
 
     if (event.queryStringParameters && event.queryStringParameters.type) {
-      type = event.queryStringParameters.type;
+      type = event.queryStringParameters.type
     }
 
     if (event.queryStringParameters && event.queryStringParameters.id) {
-      id = event.queryStringParameters.id;
+      id = event.queryStringParameters.id
     }
 
-    const connection = await mysql.createConnection(dbConfig);
-    const [packages] = await connection.execute(storage.get(page, type, id));
+    const connection = await mysql.createConnection(dbConfig)
+    const [packages] = await connection.execute(storage.get(page, type, id))
 
-    return response(200, packages, connection);
+    return response(200, packages, connection)
   } catch (e) {
-    console.log(e, "catch");
-    return response(400, e, null);
+    console.log(e, 'catch')
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.detail = async (event, context) => {
   try {
-    console.log(event.pathParameter, "event.pathParameter");
-    const package_id =
-      event.pathParameters && event.pathParameters.package_id
-        ? JSON.parse(event.pathParameters.package_id)
-        : undefined;
+    console.log(event.pathParameter, 'event.pathParameter')
+    const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
-    if (package_id === undefined) throw "pathParameters missing";
+    if (package_id === undefined) throw 'pathParameters missing'
 
-    let connection = await mysql.createConnection(dbConfig);
-    const [users] = await connection.execute(storage.getByid(package_id));
-    return response(200, users, connection);
+    let connection = await mysql.createConnection(dbConfig)
+    const [users] = await connection.execute(storage.getByid(package_id))
+    return response(200, users, connection)
   } catch (e) {
-    return response(400, e, null);
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.create = async (event, context) => {
   try {
-    let data = JSON.parse(event.body);
-    if (!data.tracking || !data.client_id || !data.weight || !data.description)
-      throw "missing_parameter.";
+    let data = JSON.parse(event.body)
+    if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
 
-    data.ing_date = date;
+    data.ing_date = date
 
-    let connection = await mysql.createConnection(dbConfig);
+    let connection = await mysql.createConnection(dbConfig)
 
-    const [checkPackage] = await connection.execute(
-      storage.findByTracking(data)
-    );
+    const [checkPackage] = await connection.execute(storage.findByTracking(data))
     if (checkPackage.length > 0) {
-      console.log("update", data);
+      console.log('update', data)
       //update
-      const [update] = await connection.execute(
-        storage.put(checkPackage[0], data, date, null)
-      );
-      if (update)
-        await connection.execute(
-          storage.postDetail(data, checkPackage[0].package_id, date)
-        );
+      const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
+      if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
     } else {
-      console.log("create", data);
+      console.log('create', data)
       const [result] = await connection.execute(storage.findMaxPaqueteId())
 
       const newGuiaId = parseInt(result[0].id) + 1
       //create
-      const [save] = await connection.execute(storage.post(data,newGuiaId));
-      if (save)
-        await connection.execute(storage.postDetail(data, save.insertId, date));
+      const [save] = await connection.execute(storage.post(data, newGuiaId))
+      if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
     }
 
-    const [userData] = await connection.execute(
-      storage.getUserInfo(data.client_id)
-    );
+    const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
 
-    if (!data.status || data.status !== "Registrado") {
-      let template = prepareToSend(data, userData);
-      const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      if (validate.test(String(userData[0].email).toLowerCase())) {
-        //await notifyEmail(AWS, template)
-      }
+    if (!data.status || data.status !== 'Registrado') await sendSMSviaSNS(data, userData)
 
-      let payload = {
-        profile: userData,
-        data: data,
-      };
-      const params = {
-        Message: JSON.stringify(payload),
-        TopicArn: `arn:aws:sns:us-east-1:${process.env["ACCOUNT_ID"]}:sms-${process.env["STAGE"]}-tigo`,
-      };
-
-      await new Promise((resolve, reject) => {
-        sns.publish(params, (error) => {
-          if (error) {
-            console.log("SNS error ", error);
-            reject(error);
-          } else {
-            console.log("added");
-            resolve("added");
-          }
-        });
-      });
-    }
-
-    return response(200, data, connection);
+    return response(200, data, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.update = async (event, context) => {
   try {
-    const package_id =
-      event.pathParameters && event.pathParameters.package_id
-        ? JSON.parse(event.pathParameters.package_id)
-        : undefined;
+    const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
     const download =
-      event.queryStringParameters && event.queryStringParameters.download
-        ? JSON.parse(event.queryStringParameters.download)
-        : undefined;
+      event.queryStringParameters && event.queryStringParameters.download ? JSON.parse(event.queryStringParameters.download) : undefined
 
-    if (package_id === undefined) throw "pathParameters missing";
+    if (package_id === undefined) throw 'pathParameters missing'
 
-    let data = JSON.parse(event.body);
+    let data = JSON.parse(event.body)
 
-    if (!data) throw "no data to update";
+    if (!data) throw 'no data to update'
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await mysql.createConnection(dbConfig)
 
     /* Status
      * En Transito
@@ -163,130 +115,112 @@ module.exports.update = async (event, context) => {
      * Entregado con saldo pendiente
      * */
     if (download) {
-      const update = await connection.execute(
-        storage.downloadSimple(date, package_id)
-      );
+      const update = await connection.execute(storage.downloadSimple(date, package_id))
     } else {
-      console.log("2");
-      const update = await connection.execute(
-        storage.updateStatus(data, package_id, date, data.status)
-      );
+      console.log('2')
+      const update = await connection.execute(storage.updateStatus(data, package_id, date, data.status))
     }
 
     //if (update && data.status === 'Entregado con saldo pendiente') {
-    const today = moment()
-      .tz("America/Guatemala")
-      .format("YYYY-MM-DD hh:mm:ss");
-    await connection.execute(storage.saveRemaining(data, today));
+    const today = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
+    await connection.execute(storage.saveRemaining(data, today))
     //}
 
-    return response(200, data, connection);
+    return response(200, data, connection)
   } catch (e) {
-    console.log(e, "t");
-    return response(400, e, null);
+    console.log(e, 't')
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.delete = async (event, context) => {
   try {
-    const package_id =
-      event.pathParameters && event.pathParameters.package_id
-        ? JSON.parse(event.pathParameters.package_id)
-        : undefined;
+    const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
-    if (package_id === undefined) throw "pathParameters missing";
+    if (package_id === undefined) throw 'pathParameters missing'
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await mysql.createConnection(dbConfig)
 
-    const update = await connection.execute(storage.delete(package_id));
+    const update = await connection.execute(storage.delete(package_id))
 
-    return response(200, update, connection);
+    return response(200, update, connection)
   } catch (e) {
-    return response(400, e, null);
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.updateStatus = async (event, context) => {
   try {
-    let data = {};
+    let data = {}
 
-    const package_id =
-      event.pathParameters && event.pathParameters.package_id
-        ? JSON.parse(event.pathParameters.package_id)
-        : undefined;
+    const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
     if (event.queryStringParameters && event.queryStringParameters.status) {
-      data.status_detail = event.queryStringParameters.status;
+      data.status_detail = event.queryStringParameters.status
     }
 
-    const date = moment().tz("America/Guatemala").format("YYYY-MM-DD hh:mm:ss");
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
 
-    const connection = await mysql.createConnection(dbConfig);
-    const [packages] = await connection.execute(
-      storage.postDetail(data, package_id, date)
-    );
+    const connection = await mysql.createConnection(dbConfig)
+    const [packages] = await connection.execute(storage.postDetail(data, package_id, date))
 
-    return response(200, packages, connection);
+    return response(200, packages, connection)
   } catch (e) {
-    console.log(e, "catch");
-    return response(400, e, null);
+    console.log(e, 'catch')
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.transfer = async (event, context) => {
   try {
-    let data = JSON.parse(event.body);
+    let data = JSON.parse(event.body)
 
-    let connection = await mysql.createConnection(dbConfig);
+    let connection = await mysql.createConnection(dbConfig)
 
-    const [checkPackage] = await connection.execute(storage.transfer(data));
+    const [checkPackage] = await connection.execute(storage.transfer(data))
 
-    const [log] = await connection.execute(storage.logPackage(data));
+    const [log] = await connection.execute(storage.logPackage(data))
 
-    return response(200, checkPackage, connection);
+    return response(200, checkPackage, connection)
   } catch (e) {
-    console.log(e, "error");
-    return response(200, e, null);
+    console.log(e, 'error')
+    return response(200, e, null)
   }
-};
+}
 
 module.exports.transferClient = async (event, context) => {
   try {
-    let data = JSON.parse(event.body);
-    let connection = await mysql.createConnection(dbConfig);
+    let data = JSON.parse(event.body)
+    let connection = await mysql.createConnection(dbConfig)
 
-    const [checkClients] = await connection.execute(
-      storage.checkClient(data.client_id.toUpperCase())
-    );
+    const [checkClients] = await connection.execute(storage.checkClient(data.client_id.toUpperCase()))
 
     if (checkClients.length === 0) {
-      connection.end();
-      throw Error("El codigo cliente no existe.");
+      connection.end()
+      throw Error('El codigo cliente no existe.')
     }
 
-    const [checkNewCode] = await connection.execute(
-      storage.checkClient(data.new_client_id.toUpperCase())
-    );
+    const [checkNewCode] = await connection.execute(storage.checkClient(data.new_client_id.toUpperCase()))
 
     if (checkNewCode.length > 0) {
-      connection.end();
-      throw Error("El nuevo codigo existe asociado a otro client");
+      connection.end()
+      throw Error('El nuevo codigo existe asociado a otro client')
     }
     //update
-    await connection.execute(storage.updateClient(data));
-    await connection.execute(storage.updateClientPackages(data));
-    const [log] = await connection.execute(storage.logPackage(data));
+    await connection.execute(storage.updateClient(data))
+    await connection.execute(storage.updateClientPackages(data))
+    const [log] = await connection.execute(storage.logPackage(data))
 
-    return response(200, checkClients, connection);
+    return response(200, checkClients, connection)
   } catch (e) {
-    console.log(e, "error");
-    return response(400, e.message, null);
+    console.log(e, 'error')
+    return response(400, e.message, null)
   }
-};
+}
 
 function prepareToSend(user, profile) {
-  let MSG = ``;
-  if (user.client_id.charAt(0) === "P") {
+  let MSG = ``
+  if (user.client_id.charAt(0) === 'P') {
     MSG = `<p><br />Queríamos informarle que ya tenemos un paquete listo en nuestras oficinas, puede ser enviado a domicilio o entregado en nuestras oficinas, los datos del paquete son los siguientes:<br />
                 <div>
                   Tracking: ${user.tracking} <br />
@@ -295,7 +229,7 @@ function prepareToSend(user, profile) {
                 </p>
                 Nuestro horario de atención es de Lunes a Viernes de 9:00 a 18:00 horas, y nuestra dirección es:
                  5 Avenida 16-28 Local D, Zona 10 Guatemala, CA.
-                 Envíanos un correo a : info@primenowcourier.com si quieres que te enviemos tu paquete a domicilio o llamanos Telefonos: 22193432 - 33481631 <br /> `;
+                 Envíanos un correo a : info@primenowcourier.com si quieres que te enviemos tu paquete a domicilio o llamanos Telefonos: 22193432 - 33481631 <br /> `
   } else {
     MSG = `<p><br />Le informamos que se ha recibido  un paquete en su casillero y se encuentra disponivoe en Guatemala, los datos del paquete son los siguientes:<br />
                 <div>
@@ -303,243 +237,232 @@ function prepareToSend(user, profile) {
                   Peso en Lbs: ${user.weight} <br />
                 <div>
                 </p>
-                Para coordinación de entrega comunicarse a el número 5803-2545 o correo eléctrico Info@rapiditoexpress.com <br /> `;
+                Para coordinación de entrega comunicarse a el número 5803-2545 o correo eléctrico Info@rapiditoexpress.com <br /> `
   }
 
   const template = {
     mailList: [profile[0].email],
-    from: "info@primenowcourier.com",
+    from: 'info@primenowcourier.com',
     subject: `Paquete listo para entrega!!`,
-    bcc: ["cesar.augs@gmail.com"],
+    bcc: ['cesar.augs@gmail.com'],
     body: {
       Html: {
-        Charset: "UTF-8",
+        Charset: 'UTF-8',
         Data: MSG,
       },
     },
-  };
-  return template;
+  }
+  return template
 }
 
-module.exports.sendPrime = async (event) => {
+module.exports.sendPrime = async event => {
   try {
-    const uuidv1 = require("uuid/v1");
-    const id = uuidv1();
+    const uuidv1 = require('uuid/v1')
+    const id = uuidv1()
 
     let params = event.body
-      ? typeof event.body === "string"
+      ? typeof event.body === 'string'
         ? JSON.parse(event.body)
         : event.body
       : event.Records
       ? JSON.parse(event.Records[0].Sns.Message)
-      : null;
+      : null
 
-    console.log(params);
+    console.log(params)
     //subir codigo de los mensajes.
-    if (!params) throw "no_params";
+    if (!params) throw 'no_params'
 
-    let SMS = "";
+    let SMS = ''
 
     switch (params.data.client_id.charAt(0)) {
-      case "P":
-        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`;
-        break;
-      case "T":
-        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`;
-        break;
+      case 'P':
+        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
+        break
+      case 'T':
+        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
+        break
       default:
-        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`;
+        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
     }
 
-    const phone = `502${params.profile[0].phone}`;
+    const phone = `502${params.profile[0].phone}`
 
-    let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env["API_KEY_TIGO"]}&id=${id}`;
+    let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
 
     return new Promise((resolve, reject) => {
       request(
         {
           url: URL,
-          method: "GET",
+          method: 'GET',
           headers: {
-            "content-type": "application/json",
+            'content-type': 'application/json',
           },
           json: true,
         },
         function (error, result, body) {
-          console.log(body, "body");
-          if (error) reject(error);
-          resolve(body);
+          console.log(body, 'body')
+          if (error) reject(error)
+          resolve(body)
         }
-      );
-    });
+      )
+    })
   } catch (e) {
-    console.log(e, "catch");
-    return response(400, e, null);
+    console.log(e, 'catch')
+    return response(400, e, null)
   }
-};
+}
 
-module.exports.sendSMSTigo = async (event) => {
+module.exports.sendSMSTigo = async event => {
   try {
     let params = event.body
-      ? typeof event.body === "string"
+      ? typeof event.body === 'string'
         ? JSON.parse(event.body)
         : event.body
       : event.Records
       ? JSON.parse(event.Records[0].Sns.Message)
-      : null;
+      : null
 
-    const session = await openSession();
+    const session = await openSession()
 
-    if (!session.access_token) throw Error("Api de tigo no responde");
+    if (!session.access_token) throw Error('Api de tigo no responde')
 
-    console.log(params, "params");
+    console.log(params, 'params')
 
     //subir codigo de los mensajes.
-    if (!params) throw "no_params";
+    if (!params) throw 'no_params'
 
-    let SMS = "";
+    let SMS = ''
 
     switch (params.data.client_id.charAt(0)) {
-      case "P":
-        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}. Contactenos al telefono 2376-4699 / 3237-0023`;
-        break;
-      case "T":
-        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Comunicarse al 4154-4275`;
-        break;
+      case 'P':
+        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}. Contactenos al telefono 2376-4699 / 3237-0023`
+        break
+      case 'T':
+        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Comunicarse al 4154-4275`
+        break
       default:
-        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`;
+        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
     }
 
-    const phone = `502${params.profile[0].phone}`;
+    const phone = `502${params.profile[0].phone}`
 
     var options = {
-      method: "POST",
-      url: process.env["URL_TIGO"],
+      method: 'POST',
+      url: process.env['URL_TIGO'],
       headers: {
-        "Content-Type": "application/json",
-        APIKey: process.env["TIGO_API_KEY"],
-        APISecret: process.env["TIGO_SECRET_KEY"],
+        'Content-Type': 'application/json',
+        APIKey: process.env['TIGO_API_KEY'],
+        APISecret: process.env['TIGO_SECRET_KEY'],
         Authorization: `Bearer ${session.access_token}`,
       },
       body: JSON.stringify({
-        protocol: "sms",
-        shortcodeId: "NowExpres",
-        shortcodeType: "pretty_code",
+        protocol: 'sms',
+        shortcodeId: 'NowExpres',
+        shortcodeType: 'pretty_code',
         msisdn: phone,
         priority: 0,
         body: SMS,
       }),
-    };
+    }
     let P = await new Promise((resolve, reject) => {
       request(options, function (error, response) {
-        if (error) reject(error);
-        console.log(response.body);
-        resolve(response.body);
-      });
-    });
-    return response(200, P, null);
+        if (error) reject(error)
+        console.log(response.body)
+        resolve(response.body)
+      })
+    })
+    return response(200, P, null)
   } catch (e) {
-    console.log(e, "catch");
-    return response(400, e, null);
+    console.log(e, 'catch')
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.sesTopic = async (event, context) => {
   try {
-    console.log(event, "check event");
-    return response(200, event, null);
+    console.log(event, 'check event')
+    return response(200, event, null)
   } catch (e) {
-    console.log(e, "error");
-    return response(400, e, null);
+    console.log(e, 'error')
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.guides = async (event, context) => {
   try {
-    let data = JSON.parse(event.body);
-    if (!data.master || !data.poliza) throw "missing_parameter";
+    let data = JSON.parse(event.body)
+    if (!data.master || !data.poliza) throw 'missing_parameter'
 
-    data.date_created = date;
+    data.date_created = date
 
-    let connection = await mysql.createConnection(dbConfig);
+    let connection = await mysql.createConnection(dbConfig)
     //status [ACTIVE,CLOSED]
-    const [checkCuide] = await connection.execute(storage.checkGuide(data));
-    console.log(checkCuide, "checkCuide");
+    const [checkCuide] = await connection.execute(storage.checkGuide(data))
+    console.log(checkCuide, 'checkCuide')
 
     if (checkCuide.length === 0) {
-      const [save] = await connection.execute(storage.postGuide(data));
+      const [save] = await connection.execute(storage.postGuide(data))
     }
 
-    return response(200, data, connection);
+    return response(200, data, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.getGuides = async (event, context) => {
   try {
-    let connection = await mysql.createConnection(dbConfig);
-    const [guides] = await connection.execute(storage.getGuides());
+    let connection = await mysql.createConnection(dbConfig)
+    const [guides] = await connection.execute(storage.getGuides())
 
-    return response(200, guides, connection);
+    return response(200, guides, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.getGuidesOpen = async (event, context) => {
   try {
-    let connection = await mysql.createConnection(dbConfig);
-    const [guides] = await connection.execute(storage.getGuidesOpens());
+    let connection = await mysql.createConnection(dbConfig)
+    const [guides] = await connection.execute(storage.getGuidesOpens())
 
-    return response(200, guides, connection);
+    return response(200, guides, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, null)
   }
-};
+}
 
 module.exports.closeGuides = async (event, context) => {
   try {
-    console.log(event.queryStringParameters, "queryStringParameters");
+    console.log(event.queryStringParameters, 'queryStringParameters')
     const data = {
-      master:
-        event.queryStringParameters && event.queryStringParameters.master
-          ? event.queryStringParameters.master
-          : undefined,
-      poliza:
-        event.queryStringParameters && event.queryStringParameters.poliza
-          ? event.queryStringParameters.poliza
-          : undefined,
-    };
+      master: event.queryStringParameters && event.queryStringParameters.master ? event.queryStringParameters.master : undefined,
+      poliza: event.queryStringParameters && event.queryStringParameters.poliza ? event.queryStringParameters.poliza : undefined,
+    }
 
-    if (data.master === undefined) throw "pathParameters missing";
+    if (data.master === undefined) throw 'pathParameters missing'
 
-    const date_closed = date;
+    const date_closed = date
 
-    let connection = await mysql.createConnection(dbConfig);
+    let connection = await mysql.createConnection(dbConfig)
     //status [ACTIVE,CLOSED]
-    const [checkCuide] = await connection.execute(
-      storage.closeGuide(data, date_closed)
-    );
+    const [checkCuide] = await connection.execute(storage.closeGuide(data, date_closed))
 
-    return response(200, checkCuide, connection);
+    return response(200, checkCuide, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, null)
   }
-};
+}
 
-module.exports.getPackagesByManifestId = async (event) => {
+module.exports.getPackagesByManifestId = async event => {
   try {
     const connection = await mysql.createConnection(dbConfig)
     try {
-      const id =
-          event.pathParameters && event.pathParameters.manifest_id
-              ? JSON.parse(event.pathParameters.manifest_id)
-              : undefined
+      const id = event.pathParameters && event.pathParameters.manifest_id ? JSON.parse(event.pathParameters.manifest_id) : undefined
 
       const [packages] = await connection.execute(storage.getPackagesByManifest(id))
 
@@ -547,7 +470,114 @@ module.exports.getPackagesByManifestId = async (event) => {
     } catch (e) {
       return response(400, e, connection)
     }
-  } catch (error) {
+  } catch (error) {}
+}
 
+module.exports.packagesBulkUpdate = async event => {
+  try {
+    /**
+     * @typedef {Object} PackagesBulkUpdate
+     * @property {String|Number} package_id
+     * @property {Number} tasa
+     * @property {Number} cif
+     * @property {Number} dai
+     * @property {Number} total_iva
+     * @property {Number} importe
+     * @property {Number} total_a_pagar
+     * @property {Number} poliza
+     * @property {Number} master
+     */
+
+    /**
+     * Request body
+     * @var {Object} data
+     * @property {Array<PackagesBulkUpdate>} data
+     */
+    const data = JSON.parse(event.body)
+    const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'master']
+    const requiredFieldsErrors = data.flatMap((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
+
+    if (requiredFieldsErrors && requiredFieldsErrors.length > 0) throw `Missing parameter in packages with index: ${requiredFieldsErrors.join(', ')}`
+
+    const status = 'Recoger en Prime'
+    const ing_date = moment().tz('America/Guatemala').format('YYYY/MM/DD')
+
+    const { packagesIds, updateValues } = data.reduce((r, d) => {
+      const id = d.package_id
+      const value = `(
+        ${d.package_id ? d.package_id : null},
+        ${d.tasa ? d.tasa : null},
+        ${d.cif ? d.cif : null},
+        ${d.dai ? d.dai : null},
+        ${d.total_iva ? d.total_iva : null},
+        ${d.importe ? d.importe : null},
+        ${d.total_a_pagar ? `'${d.total_a_pagar}'` : null},
+        ${d.poliza ? `'${d.poliza}'` : null},
+        ${d.master ? `'${d.master}'` : null},        
+        '${ing_date}',
+        '${status}'
+      )`
+
+      return {
+        ...r,
+        packagesIds: [...(r.packagesIds || []), id],
+        updateValues: [...(r.updateValues || []), value],
+      }
+    }, {})
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
+
+    if (updateInfo && updateInfo.affectedRows > 0) {
+      const messageDataFields = ['package_id', 'tracking', 'client_id', 'weight', 'description', 'ing_date', 'status']
+      const userDataFields = ['client_id', 'email', 'contact_name', 'client_name', 'phone']
+
+      const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
+
+      const sendSMSPromises = smsData.map(d => {
+        const messageData = messageDataFields.reduce((r, k) => ({ ...r, [k]: d[k] }), {})
+        const userData = userDataFields.reduce((r, k) => ({ ...r, [k]: d[k] }), {})
+
+        return sendSMSviaSNS(messageData, [userData])
+      })
+
+      await Promise.all(sendSMSPromises)
+    }
+
+    return response(200, { data: packagesIds }, connection)
+  } catch (e) {
+    console.log(e, 't')
+    return response(400, e, null)
   }
+}
+
+function sendSMSviaSNS(messageData, userData) {
+  const template = prepareToSend(messageData, userData)
+  const validate =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  if (validate.test(String(userData[0].email).toLowerCase())) {
+    //await notifyEmail(AWS, template)
+  }
+
+  let payload = {
+    profile: userData,
+    data: messageData,
+  }
+  const params = {
+    Message: JSON.stringify(payload),
+    TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
+  }
+
+  return new Promise((resolve, reject) => {
+    sns.publish(params, error => {
+      if (error) {
+        console.log('SNS error ', error)
+        reject(error)
+      } else {
+        console.log('added')
+        resolve('added')
+      }
+    })
+  })
 }

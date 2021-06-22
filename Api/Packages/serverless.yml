@@ -33,7 +33,7 @@ provider:
         - lambda:InvokeAsync
         - ses:SendEmail
         - SNS:Publish
-      Resource: "*"
+      Resource: '*'
 
 package:
   include:
@@ -50,7 +50,7 @@ functions:
           path: packages
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -72,7 +72,7 @@ functions:
           path: packages/{package_id}
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -94,7 +94,7 @@ functions:
           path: packages
           method: post
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -116,7 +116,7 @@ functions:
           path: packages/{package_id}
           method: put
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -138,7 +138,7 @@ functions:
           path: packages
           method: delete
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -160,7 +160,7 @@ functions:
           path: packages/transfer
           method: put
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -182,7 +182,7 @@ functions:
           path: transfer/client
           method: put
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -204,7 +204,7 @@ functions:
           path: packages/guides
           method: post
           cors:
-          origin: "*"
+          origin: '*'
           allowCredentials: true
           headers:
             - Content-Type
@@ -226,7 +226,7 @@ functions:
           path: packages/guides
           method: put
           cors:
-          origin: "*"
+          origin: '*'
           allowCredentials: true
           headers:
             - Content-Type
@@ -248,7 +248,7 @@ functions:
           path: packages/guides
           method: get
           cors:
-          origin: "*"
+          origin: '*'
           allowCredentials: true
           headers:
             - Content-Type
@@ -283,7 +283,7 @@ functions:
           path: packages/sms
           method: post
           cors:
-          origin: "*"
+          origin: '*'
           allowCredentials: true
           headers:
             - Content-Type
@@ -305,7 +305,7 @@ functions:
           path: packages/manifest/{manifest_id}
           method: get
           cors:
-          origin: "*"
+          origin: '*'
           allowCredentials: true
           headers:
             - Content-Type
@@ -322,3 +322,25 @@ functions:
   sesBounds:
     handler: handler.sesTopic
     timeout: 30
+
+  packagesBulkUpdate:
+    handler: handler.packagesBulkUpdate
+    timeout: 30
+    events:
+      - http:
+          path: packages/update
+          method: put
+          cors:
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}

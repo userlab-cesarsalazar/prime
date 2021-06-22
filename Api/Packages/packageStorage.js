@@ -52,7 +52,7 @@ const detail = package_id => {
   return query
 }
 
-const create = (data,newGuiaId) => {
+const create = (data, newGuiaId) => {
   let status = 'Recoger en Prime'
   if (data.status) {
     status = data.status
@@ -73,14 +73,14 @@ const create = (data,newGuiaId) => {
                   '${data.ing_date}',
                   '${status}',
                   0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0},
-                  ${data.dai ? data.dai : 0.00 },
-                  ${data.cif ? data.cif: 0.00},
-                  ${data.importe ? data.importe : 0.00 },
-                  '${data.pn_master.master ? data.pn_master.master  : '' }',
-                  '${data.pn_master.poliza ? data.pn_master.poliza : '' }',
+                  ${data.dai ? data.dai : 0.0},
+                  ${data.cif ? data.cif : 0.0},
+                  ${data.importe ? data.importe : 0.0},
+                  '${data.pn_master.master ? data.pn_master.master : ''}',
+                  '${data.pn_master.poliza ? data.pn_master.poliza : ''}',
                   '${newGuiaId}',
-                  ${data.tasa ? data.tasa : 0.00},
-                  ${data.iva ? data.iva : 0.00})`
+                  ${data.tasa ? data.tasa : 0.0},
+                  ${data.iva ? data.iva : 0.0})`
 
   return query
 }
@@ -123,7 +123,6 @@ const update = (checkPackage, data, date) => {
 }
 
 const updateStatus = (data, package_id, date, status) => {
-
   const query = `UPDATE paquetes SET weight = '${data.weight}',
                   description = '${data.description}', status = '${status}', total_a_pagar = ${data.total},
                   ent_date = '${status === 'Entregado' || status === 'Entregado con saldo pendiente' ? date : data.ent_date}',
@@ -205,7 +204,7 @@ const updateClientPackages = params => {
 
 const logPackage = data => {
   const insert = `INSERT INTO log (entity, action, register)
-                  VALUES('${data.new_client_id ? 'CLIENT':'PACKAGE'}','TRANSFER','${JSON.stringify(data)}')`
+                  VALUES('${data.new_client_id ? 'CLIENT' : 'PACKAGE'}','TRANSFER','${JSON.stringify(data)}')`
 
   return insert
 }
@@ -223,14 +222,14 @@ const downloadSimple = (date, package_id) => {
   return query
 }
 
-const checkGuide = ( data ) => {
+const checkGuide = data => {
   const query = `SELECT * FROM guides WHERE master = '${data.master}' AND poliza = '${data.poliza}'`
   return query
 }
 
-const postGuide = ( data ) => {
+const postGuide = data => {
   const query = `INSERT INTO guides (master, poliza, status)
-                  VALUES('${data.master}','${data.poliza}','ACTIVO')`;
+                  VALUES('${data.master}','${data.poliza}','ACTIVO')`
 
   return query
 }
@@ -242,8 +241,7 @@ const closeGuide = (data, date) => {
   return query
 }
 
-const getGuides = ( ) => {
-
+const getGuides = () => {
   const query = `SELECT g.id as id, p.master as master, p.poliza as poliza, g.status as status, COUNT(p.package_id) as paquetes
                   FROM guides g
                   LEFT JOIN paquetes p on g.master = p.master AND g.poliza = p.poliza
@@ -252,8 +250,7 @@ const getGuides = ( ) => {
   return query
 }
 
-const getGuidesOpens = ( ) => {
-
+const getGuidesOpens = () => {
   const query = ` SELECT * FROM 
                   FROM guides g
                   WHERE status = 'ACTIVE'
@@ -262,6 +259,43 @@ const getGuidesOpens = ( ) => {
 }
 
 const getPackagesByManifest = manifest_id => `SELECT * FROM paquetes WHERE manifest_id = ${manifest_id}`
+
+const getSMSData = packagesIds => {
+  const query = `
+    SELECT
+      p.package_id,
+      p.tracking,
+      p.weight,
+      p.description,
+      p.ing_date,
+      p.status,
+      c.client_id,
+      c.email,
+      c.contact_name,
+      c.client_name,
+      c.phone
+    FROM paquetes p
+    INNER JOIN clientes c ON c.client_id = p.client_id
+    WHERE p.package_id IN (${packagesIds.join(', ')})
+  `
+  return query
+}
+
+const packagesBulkUpdate = updateValues => `
+  INSERT INTO paquetes (package_id, tasa, cif, dai, total_iva, importe, total_a_pagar, poliza, master, ing_date, status)
+  VALUES ${updateValues.join(', ')}
+  ON DUPLICATE KEY UPDATE
+    tasa = VALUES(tasa),
+    cif = VALUES(cif),
+    dai = VALUES(dai),
+    total_iva = VALUES(total_iva),
+    importe = VALUES(importe),
+    total_a_pagar = VALUES(total_a_pagar),
+    poliza = VALUES(poliza),
+    master = VALUES(master),
+    ing_date = VALUES(ing_date),
+    status = VALUES(status);
+`
 
 module.exports = {
   get: read,
@@ -285,5 +319,7 @@ module.exports = {
   checkClient,
   updateClient,
   updateClientPackages,
-  getPackagesByManifest
+  getPackagesByManifest,
+  packagesBulkUpdate,
+  getSMSData,
 }
