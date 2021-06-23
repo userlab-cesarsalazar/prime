@@ -328,7 +328,7 @@ functions:
     timeout: 30
     events:
       - http:
-          path: packages/update
+          path: packages/bulk-update
           method: put
           cors:
             origin: '*'
