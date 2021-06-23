@@ -83,7 +83,35 @@ module.exports.create = async (event, context) => {
 
     const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
 
-    if (!data.status || data.status !== 'Registrado') await sendSMSviaSNS(data, userData)
+    if (!data.status || data.status !== 'Registrado') {
+      let template = prepareToSend(data, userData)
+      const validate =
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      if (validate.test(String(userData[0].email).toLowerCase())) {
+        //await notifyEmail(AWS, template)
+      }
+
+      let payload = {
+        profile: userData,
+        data: data,
+      }
+      const params = {
+        Message: JSON.stringify(payload),
+        TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
+      }
+
+      await new Promise((resolve, reject) => {
+        sns.publish(params, error => {
+          if (error) {
+            console.log('SNS error ', error)
+            reject(error)
+          } else {
+            console.log('added')
+            resolve('added')
+          }
+        })
+      })
+    }
 
     return response(200, data, connection)
   } catch (e) {
@@ -257,9 +285,6 @@ function prepareToSend(user, profile) {
 
 module.exports.sendPrime = async event => {
   try {
-    const uuidv1 = require('uuid/v1')
-    const id = uuidv1()
-
     let params = event.body
       ? typeof event.body === 'string'
         ? JSON.parse(event.body)
@@ -268,44 +293,7 @@ module.exports.sendPrime = async event => {
       ? JSON.parse(event.Records[0].Sns.Message)
       : null
 
-    console.log(params)
-    //subir codigo de los mensajes.
-    if (!params) throw 'no_params'
-
-    let SMS = ''
-
-    switch (params.data.client_id.charAt(0)) {
-      case 'P':
-        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
-        break
-      case 'T':
-        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
-        break
-      default:
-        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
-    }
-
-    const phone = `502${params.profile[0].phone}`
-
-    let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
-
-    return new Promise((resolve, reject) => {
-      request(
-        {
-          url: URL,
-          method: 'GET',
-          headers: {
-            'content-type': 'application/json',
-          },
-          json: true,
-        },
-        function (error, result, body) {
-          console.log(body, 'body')
-          if (error) reject(error)
-          resolve(body)
-        }
-      )
-    })
+    return handleSendSMSPrime(params)
   } catch (e) {
     console.log(e, 'catch')
     return response(400, e, null)
@@ -530,16 +518,14 @@ module.exports.packagesBulkUpdate = async event => {
     const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
 
     if (updateInfo && updateInfo.affectedRows > 0) {
-      const messageDataFields = ['package_id', 'tracking', 'client_id', 'weight', 'description', 'ing_date', 'status']
-      const userDataFields = ['client_id', 'email', 'contact_name', 'client_name', 'phone']
-
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
 
-      const sendSMSPromises = smsData.map(d => {
-        const messageData = messageDataFields.reduce((r, k) => ({ ...r, [k]: d[k] }), {})
-        const userData = userDataFields.reduce((r, k) => ({ ...r, [k]: d[k] }), {})
-
-        return sendSMSviaSNS(messageData, [userData])
+      const sendSMSPromises = smsData.map(({ client_id, tracking, total, weight, phone }) => {
+        const params = {
+          data: { client_id, tracking, total, weight },
+          profile: [{ phone }],
+        }
+        return handleSendSMSPrime(params)
       })
 
       await Promise.all(sendSMSPromises)
@@ -552,32 +538,45 @@ module.exports.packagesBulkUpdate = async event => {
   }
 }
 
-function sendSMSviaSNS(messageData, userData) {
-  const template = prepareToSend(messageData, userData)
-  const validate =
-    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  if (validate.test(String(userData[0].email).toLowerCase())) {
-    //await notifyEmail(AWS, template)
+function handleSendSMSPrime(params) {
+  console.log(params)
+  //subir codigo de los mensajes.
+  if (!params) throw 'no_params'
+
+  const uuidv1 = require('uuid/v1')
+  const id = uuidv1()
+  let SMS = ''
+
+  switch (params.data.client_id.charAt(0)) {
+    case 'P':
+      SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
+      break
+    case 'T':
+      SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
+      break
+    default:
+      SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
   }
 
-  let payload = {
-    profile: userData,
-    data: messageData,
-  }
-  const params = {
-    Message: JSON.stringify(payload),
-    TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
-  }
+  const phone = `502${params.profile[0].phone}`
+
+  let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
 
   return new Promise((resolve, reject) => {
-    sns.publish(params, error => {
-      if (error) {
-        console.log('SNS error ', error)
-        reject(error)
-      } else {
-        console.log('added')
-        resolve('added')
+    request(
+      {
+        url: URL,
+        method: 'GET',
+        headers: {
+          'content-type': 'application/json',
+        },
+        json: true,
+      },
+      function (error, result, body) {
+        console.log(body, 'body')
+        if (error) reject(error)
+        resolve(body)
       }
-    })
+    )
   })
 }
