@@ -596,30 +596,7 @@ module.exports.packagesBulkUpdate = async event => {
   }
 }
 
-function sendSMSviaSNS(params) {
-  console.log(params)
-  //subir codigo de los mensajes.
-  if (!params) throw 'no_params'
-
-  const uuidv1 = require('uuid/v1')
-  const id = uuidv1()
-  let SMS = ''
-
-  switch (params.data.client_id.charAt(0)) {
-    case 'P':
-      SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
-      break
-    case 'T':
-      SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
-      break
-    default:
-      SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
-  }
-
-  const phone = `502${params.profile[0].phone}`
-
-  const URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
-
+async function sendSMSviaSNS(params) {
   const payload = {
     profile: params.profile,
     data: params.data,
@@ -629,15 +606,9 @@ function sendSMSviaSNS(params) {
     TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
   }
 
-  return new Promise((resolve, reject) => {
-    sns.publish(snsParams, error => {
-      if (error) {
-        console.log('SNS error ', error)
-        reject(error)
-      } else {
-        console.log('added')
-        resolve('added')
-      }
-    })
-  })
+  return sns
+    .publish(snsParams)
+    .promise()
+    .then(result => console.log('added', result))
+    .catch(error => console.log('SNS error ', error))
 }
