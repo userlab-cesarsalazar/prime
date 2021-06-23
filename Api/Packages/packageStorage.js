@@ -264,10 +264,16 @@ const getSMSData = packagesIds => {
   const query = `
     SELECT
       p.package_id,
-      c.client_id,
       p.tracking,
-      p.total_a_pagar AS total,
       p.weight,
+      p.description,
+      p.ing_date,
+      p.status,
+      p.total_a_pagar AS total,
+      c.client_id,
+      c.email,
+      c.contact_name,
+      c.client_name,
       c.phone
     FROM paquetes p
     INNER JOIN clientes c ON c.client_id = p.client_id

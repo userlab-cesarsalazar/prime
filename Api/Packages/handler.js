@@ -285,6 +285,9 @@ function prepareToSend(user, profile) {
 
 module.exports.sendPrime = async event => {
   try {
+    const uuidv1 = require('uuid/v1')
+    const id = uuidv1()
+
     let params = event.body
       ? typeof event.body === 'string'
         ? JSON.parse(event.body)
@@ -293,7 +296,44 @@ module.exports.sendPrime = async event => {
       ? JSON.parse(event.Records[0].Sns.Message)
       : null
 
-    return handleSendSMSPrime(params)
+    console.log(params)
+    //subir codigo de los mensajes.
+    if (!params) throw 'no_params'
+
+    let SMS = ''
+
+    switch (params.data.client_id.charAt(0)) {
+      case 'P':
+        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
+        break
+      case 'T':
+        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
+        break
+      default:
+        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
+    }
+
+    const phone = `502${params.profile[0].phone}`
+
+    let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
+
+    return new Promise((resolve, reject) => {
+      request(
+        {
+          url: URL,
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json',
+          },
+          json: true,
+        },
+        function (error, result, body) {
+          console.log(body, 'body')
+          if (error) reject(error)
+          resolve(body)
+        }
+      )
+    })
   } catch (e) {
     console.log(e, 'catch')
     return response(400, e, null)
@@ -520,12 +560,30 @@ module.exports.packagesBulkUpdate = async event => {
     if (updateInfo && updateInfo.affectedRows > 0) {
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
 
-      const sendSMSPromises = smsData.map(({ client_id, tracking, total, weight, phone }) => {
+      const sendSMSPromises = smsData.map(d => {
         const params = {
-          data: { client_id, tracking, total, weight },
-          profile: [{ phone }],
+          data: {
+            package_id: d.package_id,
+            tracking: d.tracking,
+            client_id: d.client_id,
+            weight: d.weight,
+            description: d.description,
+            ing_date: d.ing_date,
+            status: d.status,
+            total: d.total,
+          },
+          profile: [
+            {
+              client_id: d.client_id,
+              email: d.email,
+              contact_name: d.contact_name,
+              client_name: d.client_name,
+              phone: d.phone,
+            },
+          ],
         }
-        return handleSendSMSPrime(params)
+
+        return sendSMSviaSNS(params)
       })
 
       await Promise.all(sendSMSPromises)
@@ -538,7 +596,7 @@ module.exports.packagesBulkUpdate = async event => {
   }
 }
 
-function handleSendSMSPrime(params) {
+function sendSMSviaSNS(params) {
   console.log(params)
   //subir codigo de los mensajes.
   if (!params) throw 'no_params'
@@ -560,23 +618,26 @@ function handleSendSMSPrime(params) {
 
   const phone = `502${params.profile[0].phone}`
 
-  let URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
+  const URL = `https://comunicador.tigo.com.gt/api/http/send_to_contact?msisdn=${phone}&message=${SMS}&api_key=${process.env['API_KEY_TIGO']}&id=${id}`
+
+  const payload = {
+    profile: params.profile,
+    data: params.data,
+  }
+  const snsParams = {
+    Message: JSON.stringify(payload),
+    TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
+  }
 
   return new Promise((resolve, reject) => {
-    request(
-      {
-        url: URL,
-        method: 'GET',
-        headers: {
-          'content-type': 'application/json',
-        },
-        json: true,
-      },
-      function (error, result, body) {
-        console.log(body, 'body')
-        if (error) reject(error)
-        resolve(body)
+    sns.publish(snsParams, error => {
+      if (error) {
+        console.log('SNS error ', error)
+        reject(error)
+      } else {
+        console.log('added')
+        resolve('added')
       }
-    )
+    })
   })
 }
