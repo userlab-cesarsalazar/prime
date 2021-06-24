@@ -583,10 +583,10 @@ module.exports.packagesBulkUpdate = async event => {
           ],
         }
 
-        return sendSMSviaSNS(params)
+        // return sendSMSviaSNS(params)
       })
 
-      await Promise.all(sendSMSPromises)
+      // await Promise.all(sendSMSPromises)
     }
 
     return response(200, { data: packagesIds }, connection)
