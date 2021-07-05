@@ -583,10 +583,10 @@ module.exports.packagesBulkUpdate = async event => {
           ],
         }
 
-        // return sendSMSviaSNS(params)
+        return sendSMSviaSNS(params)
       })
 
-      // await Promise.all(sendSMSPromises)
+      await Promise.all(sendSMSPromises)
     }
 
     return response(200, { data: packagesIds }, connection)
@@ -606,9 +606,5 @@ async function sendSMSviaSNS(params) {
     TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
   }
 
-  return sns
-    .publish(snsParams)
-    .promise()
-    .then(result => console.log('added', result))
-    .catch(error => console.log('SNS error ', error))
+  return sns.publish(snsParams).promise()
 }
