@@ -523,7 +523,8 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'master']
-    const requiredFieldsErrors = data.flatMap((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
+    const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
+    const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
     if (requiredFieldsErrors && requiredFieldsErrors.length > 0) throw `Missing parameter in packages with index: ${requiredFieldsErrors.join(', ')}`
 
