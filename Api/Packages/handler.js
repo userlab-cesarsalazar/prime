@@ -555,40 +555,40 @@ module.exports.packagesBulkUpdate = async event => {
     }, {})
 
     const connection = await mysql.createConnection(dbConfig)
-    await connection.execute(storage.packagesBulkUpdate(updateValues))
-    // const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
 
-    // if (updateInfo && updateInfo.affectedRows > 0) {
-    //   const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
+    const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
 
-    //   const sendSMSPromises = smsData.map(d => {
-    //     const params = {
-    //       data: {
-    //         package_id: d.package_id,
-    //         tracking: d.tracking,
-    //         client_id: d.client_id,
-    //         weight: d.weight,
-    //         description: d.description,
-    //         ing_date: d.ing_date,
-    //         status: d.status,
-    //         total: d.total,
-    //       },
-    //       profile: [
-    //         {
-    //           client_id: d.client_id,
-    //           email: d.email,
-    //           contact_name: d.contact_name,
-    //           client_name: d.client_name,
-    //           phone: d.phone,
-    //         },
-    //       ],
-    //     }
+    if (updateInfo && updateInfo.affectedRows > 0) {
+      const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
 
-    //     return sendSMSviaSNS(params)
-    //   })
+      const sendSMSPromises = smsData.map(d => {
+        const params = {
+          data: {
+            package_id: d.package_id,
+            tracking: d.tracking,
+            client_id: d.client_id,
+            weight: d.weight,
+            description: d.description,
+            ing_date: d.ing_date,
+            status: d.status,
+            total: d.total,
+          },
+          profile: [
+            {
+              client_id: d.client_id,
+              email: d.email,
+              contact_name: d.contact_name,
+              client_name: d.client_name,
+              phone: d.phone,
+            },
+          ],
+        }
 
-    //   await Promise.all(sendSMSPromises)
-    // }
+        return sendSMSviaSNS(params)
+      })
+
+      await Promise.all(sendSMSPromises)
+    }
 
     return response(200, { data: packagesIds }, connection)
   } catch (e) {
