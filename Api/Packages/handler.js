@@ -522,6 +522,7 @@ module.exports.packagesBulkUpdate = async event => {
      * @property {Array<PackagesBulkUpdate>} data
      */
     const data = JSON.parse(event.body)
+    console.log('Request Body', data)
     const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'master']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
@@ -555,12 +556,13 @@ module.exports.packagesBulkUpdate = async event => {
     }, {})
 
     const connection = await mysql.createConnection(dbConfig)
-
+    console.log('DB connection created', connection)
     const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
-
+    console.log('Update Packages', updateValues)
+    console.log('Update DB Info', updateInfo)
     if (updateInfo && updateInfo.affectedRows > 0) {
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
-
+      console.log('SMS data', smsData)
       const sendSMSPromises = smsData.map(d => {
         const params = {
           data: {
@@ -589,7 +591,7 @@ module.exports.packagesBulkUpdate = async event => {
 
       await Promise.all(sendSMSPromises)
     }
-
+    console.log('Response packages Ids', packagesIds)
     return response(200, { data: packagesIds }, connection)
   } catch (e) {
     console.log(e, 't')
@@ -606,6 +608,6 @@ async function sendSMSviaSNS(params) {
     Message: JSON.stringify(payload),
     TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
   }
-
+  console.log('SNS params', snsParams)
   await sns.publish(snsParams).promise()
 }
