@@ -298,6 +298,13 @@ const packagesBulkUpdate = updateValues => `
     status = VALUES(status);
 `
 
+const manifestsBulkUpdate = manifestValues => `
+  INSERT INTO manifest (manifest_id, status)
+  VALUES ${manifestValues.join(', ')}
+  ON DUPLICATE KEY UPDATE
+    status = VALUES(status);
+`
+
 module.exports = {
   get: read,
   post: create,
@@ -323,4 +330,5 @@ module.exports = {
   getPackagesByManifest,
   packagesBulkUpdate,
   getSMSData,
+  manifestsBulkUpdate,
 }

@@ -513,7 +513,8 @@ module.exports.packagesBulkUpdate = async event => {
      * @property {Number} importe
      * @property {Number} total_a_pagar
      * @property {Number} poliza
-     * @property {Number} master
+     * @property {String|Number} manifest_id
+     * @property {Number} [master]
      */
 
     /**
@@ -523,7 +524,7 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     console.log('Request Body', data)
-    const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'master']
+    const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
@@ -532,8 +533,11 @@ module.exports.packagesBulkUpdate = async event => {
     const status = 'Recoger en Prime'
     const ing_date = moment().tz('America/Guatemala').format('YYYY/MM/DD')
 
-    const { packagesIds, updateValues } = data.reduce((r, d) => {
-      const id = d.package_id
+    const { manifestValues, packagesIds, updateValues } = data.reduce((r, d) => {
+      const manifestValue = `(${d.manifest_id}, 'CLOSED')`
+
+      const packageId = d.package_id
+
       const value = `(
         ${d.package_id ? d.package_id : null},
         ${d.tasa ? d.tasa : null},
@@ -550,7 +554,8 @@ module.exports.packagesBulkUpdate = async event => {
 
       return {
         ...r,
-        packagesIds: [...(r.packagesIds || []), id],
+        manifestValues: [...(r.manifestValues || []), manifestValue],
+        packagesIds: [...(r.packagesIds || []), packageId],
         updateValues: [...(r.updateValues || []), value],
       }
     }, {})
@@ -561,6 +566,8 @@ module.exports.packagesBulkUpdate = async event => {
     console.log('Update Packages', updateValues)
     console.log('Update DB Info', updateInfo)
     if (updateInfo && updateInfo.affectedRows > 0) {
+      await connection.execute(storage.manifestsBulkUpdate(manifestValues))
+
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
       console.log('SMS data', smsData)
       const sendSMSPromises = smsData.map(d => {
