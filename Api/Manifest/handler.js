@@ -2,7 +2,7 @@
 const mysql = require('mysql2/promise')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
-const { response, fileResponse, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+const { response, fileResponse, getBody, escapeFields, pad } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 const storage = require('./manifestStorage')
 
 const AWS = require('aws-sdk')
@@ -58,6 +58,15 @@ module.exports.updateManifest = async (event, context) => {
     }
 
     const [manifest] = await connection.execute(storage.updateManifest(body, id))
+
+    if (body.status === 'PENDING') {
+      const [[{ manifest_id: lastManifestId }]] = await connection.execute(storage.getMAXManifest())
+
+      const newManifestId = lastManifestId + 1
+      const newManifestDescription = `${pad(newManifestId, 4)}-${new Date().getFullYear()}`
+
+      await connection.execute(storage.createManifest({ manifest_id: newManifestId, description: newManifestDescription }))
+    }
 
     return response(200, manifest, connection)
   } catch (error) {

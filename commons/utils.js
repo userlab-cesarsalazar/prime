@@ -17,13 +17,13 @@ let common = {
     return {
       statusCode: status,
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename=manifest-${manifestName}.xlsx`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename=manifest-${manifestName}.xlsx`,
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true,
       },
       body: body,
-      isBase64Encoded: true
+      isBase64Encoded: true,
     }
   },
   wakeUpLambda: event => {
@@ -50,19 +50,13 @@ let common = {
       Source: emailData.from /* required */,
     }
     // Create the promise and SES service object
-    return new awsContext.SES({ apiVersion: '2010-12-01' })
-      .sendEmail(params)
-      .promise()
+    return new awsContext.SES({ apiVersion: '2010-12-01' }).sendEmail(params).promise()
   },
   getBody: event => {
-    const postBody = typeof event.body === 'string'
-        ? JSON.parse(event.body)
-        : event.body
+    const postBody = typeof event.body === 'string' ? JSON.parse(event.body) : event.body
     const snsBody = event.Records ? JSON.parse(event.Records[0].Sns.Message) : {}
 
-    return event.body
-      ? postBody
-      : snsBody
+    return event.body ? postBody : snsBody
   },
   escapeFields: (data = {}, fieldsToExclude = []) => {
     const escapeStr = str => {
@@ -81,14 +75,15 @@ let common = {
     let escapedBody = {}
 
     Object.keys(data).forEach(
-      k =>
-        (escapedBody[k] =
-          fieldsToExclude.length > 0 && fieldsToExclude.some(fte => fte === k)
-            ? data[k]
-            : escapeStr(data[k]))
+      k => (escapedBody[k] = fieldsToExclude.length > 0 && fieldsToExclude.some(fte => fte === k) ? data[k] : escapeStr(data[k]))
     )
 
     return escapedBody
+  },
+  pad: function (num, size) {
+    var str = num + ''
+    while (str.length < size) str = '0' + str
+    return str
   },
 }
 

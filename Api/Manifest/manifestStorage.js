@@ -1,6 +1,10 @@
 const createManifest = data => ` INSERT INTO manifest
-                  (description, status)
-                  VALUES('${data.description.toUpperCase()}', 'OPEN');`
+                  (manifest_id, description, status)
+                  VALUES(
+                    ${data.manifest_id ? data.manifest_id : 'NULL'},
+                    '${data.description.toUpperCase()}',
+                    'OPEN'
+                  );`
 
 const readManifest = status => {
   console.log(status)
