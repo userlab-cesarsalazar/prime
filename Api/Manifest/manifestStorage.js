@@ -18,7 +18,7 @@ const updateManifest = (data, id) => `UPDATE manifest SET description='${data.de
                                       status='${data.status}' WHERE manifest_id=${id};`
 
 const getPackagesByManifestId = manifest_id =>
-  `SELECT A.tracking, S.name as supplier_name, C.client_name, A.weight, A.description,
+  `SELECT A.package_id, A.tracking, S.name as supplier_name, C.client_name, A.weight, A.description,
     A.client_id as warehouse, A.costo_producto, A.cif, A.tasa, A.status, A.importe, A.guia, A.cif, A.dai,
     A.master, A.poliza, A.manifest_id, A.total_iva, A.total_a_pagar, A.ing_date
     FROM paquetes A
