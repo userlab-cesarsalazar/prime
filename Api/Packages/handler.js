@@ -606,6 +606,42 @@ module.exports.packagesBulkUpdate = async event => {
   }
 }
 
+module.exports.readTariffs = async event => {
+  try {
+    const params = event.queryStringParameters
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    const [tariffs] = await connection.execute(storage.getTariffs(params))
+
+    return response(200, tariffs, connection)
+  } catch (e) {
+    console.log(e, 'catch')
+    return response(400, e, null)
+  }
+}
+
+module.exports.updateTariff = async event => {
+  try {
+    const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
+
+    if (package_id === undefined) throw new Error('package_id missing')
+
+    let data = JSON.parse(event.body)
+
+    if (!data || !data.tariff_code) throw new Error('tariff_code missing')
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    await connection.execute(storage.updatePackageTariff(data.tariff_code, package_id))
+
+    return response(200, { package_id, tariff_code: data.tariff_code }, connection)
+  } catch (e) {
+    console.log(e, 't')
+    return response(400, e, null)
+  }
+}
+
 async function sendSMSviaSNS(params) {
   const payload = {
     profile: params.profile,
