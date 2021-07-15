@@ -40,6 +40,21 @@ const read = (page, type, id) => {
   return query
 }
 
+const getTariffs = fields => {
+  const codeWhereCondition = fields.code ? `code = ${fields.code}` : '1'
+  const descriptionWhereCondition = fields.description ? `description LIKE '%${fields.description}%'` : '1'
+
+  return `
+    SELECT id, code, description, tariff
+    FROM tariffs
+    WHERE ${codeWhereCondition} AND ${descriptionWhereCondition}
+  `
+}
+
+const updatePackageTariff = (tariff_code, package_id) => `
+  UPDATE paquetes SET tariff_code = ${tariff_code} WHERE package_id = ${package_id}
+`
+
 const detail = package_id => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description,
                  C.contact_name, A.ing_date, A.ent_date, A.status, C.main_address, C.entrega,
@@ -331,4 +346,6 @@ module.exports = {
   packagesBulkUpdate,
   getSMSData,
   manifestsBulkUpdate,
+  getTariffs,
+  updatePackageTariff,
 }
