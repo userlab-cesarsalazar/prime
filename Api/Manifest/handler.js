@@ -113,23 +113,42 @@ module.exports.exportManifest = async event => {
     let report
     let file
 
-    console.log('result ', result)
+    const poundToKgFactor = 0.453592
+    const manifestData =
+      result && result[0]
+        ? result.map(row =>
+            Object.keys(row).reduce((r, k) => {
+              if (k === 'weight') {
+                return {
+                  ...r,
+                  [k]: row[k],
+                  pesoKg: Number(row[k] * poundToKgFactor).toFixed(2),
+                  valorFlete: Math.ceil(row[k] * poundToKgFactor * 2),
+                }
+              }
+
+              return { ...r, [k]: row[k] }
+            }, {})
+          )
+        : []
+
+    console.log('manifestData ', manifestData)
 
     let manifestoHeaders = [
       { name: 'Tracking', column: 'tracking', width: 33.5 },
-      { name: 'WareHouse', column: 'warehouse', width: 9.83 }, //Missing
+      { name: 'WareHouse', column: 'warehouse', width: 9.83 },
       { name: 'Proveedor', column: 'supplier_name', width: 15 },
       { name: 'Consignatario', column: 'client_name', width: 43.33 },
-      { name: 'Piezas', column: 'Piezas', width: 6 }, //Missing
-      { name: 'Peso Kg', column: 'weight', width: 6.33 },
-      { name: 'Valor Flete', column: 'ValorFlete', width: 15 }, //Missing
+      { name: 'Piezas', column: 'pieces', width: 6 },
+      { name: 'Peso Kg', column: 'pesoKg', width: 6.33 },
+      { name: 'Valor Flete', column: 'valorFlete', width: 15 },
       { name: 'Descripcion', column: 'description', width: 51.5 },
       {
         name: 'Valor Declarado',
         column: 'costo_producto',
         width: 16.17,
         numFmt: '"$"#,##0.00',
-      }, //Missing
+      },
     ]
 
     let weightHeaders = [
@@ -142,7 +161,7 @@ module.exports.exportManifest = async event => {
         {
           name: `MANIFIESTO`,
           headers: manifestoHeaders,
-          data: result,
+          data: manifestData,
         },
         {
           name: 'PESOS',
