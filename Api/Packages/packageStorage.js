@@ -41,7 +41,7 @@ const read = (page, type, id) => {
 }
 
 const getTariffs = fields => {
-  const codeWhereCondition = fields.code ? `code = ${fields.code}` : '1'
+  const codeWhereCondition = fields.code ? `id = ${fields.code}` : '1'
   const descriptionWhereCondition = fields.description ? `description LIKE '%${fields.description}%'` : '1'
 
   return `
