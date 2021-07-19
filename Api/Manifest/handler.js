@@ -108,6 +108,7 @@ module.exports.exportManifest = async event => {
   const connection = await mysql.createConnection(dbConfig)
   try {
     const manifest_id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
+    const includeTariff = event.queryStringParameters && event.queryStringParameters.include_tariff
 
     let [result] = await connection.execute(storage.getPackagesByManifestId(manifest_id))
     let report
@@ -150,6 +151,16 @@ module.exports.exportManifest = async event => {
         numFmt: '"$"#,##0.00',
       },
     ]
+
+    if (includeTariff) {
+      const tariffHeaders = [
+        { name: 'Numero de partida', column: 'tariff_code', width: 15 },
+        { name: 'Descripcion', column: 'tariff_description', width: 30 },
+        { name: 'Valor', column: 'tariff_tasa', width: 6, numFmt: '"%"#,##0' },
+      ]
+
+      manifestoHeaders.push(...tariffHeaders)
+    }
 
     let weightHeaders = [
       { name: 'TULA', column: 'tula', width: 18 },
