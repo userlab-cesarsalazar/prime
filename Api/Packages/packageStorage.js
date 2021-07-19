@@ -52,7 +52,10 @@ const getTariffs = fields => {
 }
 
 const updatePackageTariff = (tariff_code, package_id) => `
-  UPDATE paquetes SET tariff_code = ${tariff_code} WHERE package_id = ${package_id}
+  UPDATE paquetes SET
+    tariff_code = ${tariff_code},
+    tasa = (SELECT tasa FROM tariffs WHERE id = ${tariff_code})
+  WHERE package_id = ${package_id}
 `
 
 const detail = package_id => {
