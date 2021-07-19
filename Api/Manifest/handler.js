@@ -93,8 +93,9 @@ module.exports.readPackagesByManifest = async event => {
   const connection = await mysql.createConnection(dbConfig)
   try {
     const manifest_id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
+    const noNullMaster = event.queryStringParameters && event.queryStringParameters.no_null_master
 
-    let [result] = await connection.execute(storage.getPackagesByManifestId(manifest_id))
+    let [result] = await connection.execute(storage.getPackagesByManifestId(manifest_id, noNullMaster))
 
     return response(200, result, connection)
   } catch (error) {
@@ -154,7 +155,7 @@ module.exports.exportManifest = async event => {
 
     if (includeTariff) {
       const tariffHeaders = [
-        { name: 'Numero de partida', column: 'tariff_code', width: 15 },
+        { name: 'Numero de partida', column: 'tariff_nro_partida', width: 15 },
         { name: 'Descripcion', column: 'tariff_description', width: 30 },
         { name: 'Valor', column: 'tariff_tasa', width: 6, numFmt: '"%"#,##0' },
       ]
