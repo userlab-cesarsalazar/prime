@@ -45,7 +45,7 @@ const getTariffs = fields => {
   const descriptionWhereCondition = fields.description ? `description LIKE '%${fields.description}%'` : '1'
 
   return `
-    SELECT id, code, description, tariff
+    SELECT id, code, description, tasa
     FROM tariffs
     WHERE ${codeWhereCondition} AND ${descriptionWhereCondition}
   `
