@@ -54,7 +54,9 @@ const getTariffs = fields => {
 const updatePackageTariff = (tariff_code, package_id) => `
   UPDATE paquetes SET
     tariff_code = ${tariff_code},
-    tasa = (SELECT tasa FROM tariffs WHERE id = ${tariff_code})
+    tasa = (SELECT tasa FROM tariffs WHERE id = ${tariff_code}),
+    dai = (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code})),
+    total_iva = ((cif + (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code}))) * 0.12)
   WHERE package_id = ${package_id}
 `
 
@@ -323,6 +325,12 @@ const manifestsBulkUpdate = manifestValues => `
     status = VALUES(status);
 `
 
+const getUncompleteManifests = manifestIds => `
+  SELECT manifest_id
+  FROM paquetes
+  WHERE manifest_id IN (${manifestIds.join(', ')}) AND master = "" AND poliza = ""
+`
+
 module.exports = {
   get: read,
   post: create,
@@ -351,4 +359,5 @@ module.exports = {
   manifestsBulkUpdate,
   getTariffs,
   updatePackageTariff,
+  getUncompleteManifests,
 }
