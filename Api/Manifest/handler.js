@@ -125,7 +125,7 @@ module.exports.exportManifest = async event => {
                   ...r,
                   [k]: row[k],
                   pesoKg: Number(row[k] * poundToKgFactor).toFixed(2),
-                  valorFlete: Math.ceil(row[k] * poundToKgFactor * 2),
+                  valorFlete: Number(row[k] * poundToKgFactor * 2).toFixed(2),
                 }
               }
 

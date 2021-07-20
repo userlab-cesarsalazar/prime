@@ -533,9 +533,7 @@ module.exports.packagesBulkUpdate = async event => {
     const status = 'Recoger en Prime'
     const ing_date = moment().tz('America/Guatemala').format('YYYY/MM/DD')
 
-    const { manifestValues, packagesIds, updateValues } = data.reduce((r, d) => {
-      const manifestValue = `(${d.manifest_id}, 'CLOSED')`
-
+    const { manifestIds, packagesIds, updateValues } = data.reduce((r, d) => {
       const packageId = d.package_id
 
       const value = `(
@@ -552,9 +550,11 @@ module.exports.packagesBulkUpdate = async event => {
         '${status}'
       )`
 
+      const isDuplicate = r.manifestIds && r.manifestIds.some(id => Number(id) === Number(d.manifest_id))
+
       return {
         ...r,
-        manifestValues: [...(r.manifestValues || []), manifestValue],
+        manifestIds: isDuplicate ? r.manifestIds : [...(r.manifestIds || []), d.manifest_id],
         packagesIds: [...(r.packagesIds || []), packageId],
         updateValues: [...(r.updateValues || []), value],
       }
@@ -566,7 +566,17 @@ module.exports.packagesBulkUpdate = async event => {
     console.log('Update Packages', updateValues)
     console.log('Update DB Info', updateInfo)
     if (updateInfo && updateInfo.affectedRows > 0) {
-      await connection.execute(storage.manifestsBulkUpdate(manifestValues))
+      const [uncompleteManifests] = await connection.execute(storage.getUncompleteManifests(manifestIds))
+
+      const manifestValues = manifestIds.reduce((result, id) => {
+        const isUncomplete = uncompleteManifests.some(um => Number(um.manifest_id) === Number(id))
+
+        if (isUncomplete) return result
+
+        return [...(result || []), `(${id}, 'CLOSED')`]
+      }, [])
+
+      if (manifestValues && manifestValues[0]) await connection.execute(storage.manifestsBulkUpdate(manifestValues))
 
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
       console.log('SMS data', smsData)

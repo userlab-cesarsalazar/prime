@@ -323,6 +323,12 @@ const manifestsBulkUpdate = manifestValues => `
     status = VALUES(status);
 `
 
+const getUncompleteManifests = manifestIds => `
+  SELECT manifest_id
+  FROM paquetes
+  WHERE manifest_id IN (${manifestIds.join(', ')}) AND master = "" AND poliza = ""
+`
+
 module.exports = {
   get: read,
   post: create,
@@ -351,4 +357,5 @@ module.exports = {
   manifestsBulkUpdate,
   getTariffs,
   updatePackageTariff,
+  getUncompleteManifests,
 }
