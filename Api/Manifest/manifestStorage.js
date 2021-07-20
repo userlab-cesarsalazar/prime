@@ -32,7 +32,7 @@ const getPackagesByManifestId = (manifest_id, noNullMaster) =>
     LEFT JOIN suppliers S on A.supplier_id = S.id
     LEFT JOIN tariffs T on A.tariff_code = T.id
     WHERE A.manifest_id = ${manifest_id}
-    ${noNullMaster ? 'AND A.master = "" AND A.poliza = ""' : ''}`
+    ${noNullMaster ? 'AND (A.master = "" OR A.master IS NULL) AND (A.poliza = "" OR A.poliza IS NULL)' : ''}`
 
 module.exports = {
   createManifest,
