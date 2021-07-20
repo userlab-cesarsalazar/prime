@@ -328,7 +328,10 @@ const manifestsBulkUpdate = manifestValues => `
 const getUncompleteManifests = manifestIds => `
   SELECT manifest_id
   FROM paquetes
-  WHERE manifest_id IN (${manifestIds.join(', ')}) AND master = "" AND poliza = ""
+  WHERE
+    manifest_id IN (${manifestIds.join(', ')})
+    AND (master = "" OR master IS NULL)
+    AND (poliza = "" OR poliza IS NULL)
 `
 
 module.exports = {
