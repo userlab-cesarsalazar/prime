@@ -155,7 +155,7 @@ module.exports.exportManifest = async event => {
 
     if (includeTariff) {
       const tariffHeaders = [
-        { name: 'Numero de partida', column: 'tariff_nro_partida', width: 15 },
+        { name: 'Numero de partida Arancelaria', column: 'tariff_nro_partida', width: 15 },
         { name: 'Descripcion', column: 'tariff_description', width: 30 },
         { name: 'Valor', column: 'tariff_tasa', width: 6, numFmt: '"%"#,##0' },
       ]
