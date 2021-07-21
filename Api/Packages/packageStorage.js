@@ -64,7 +64,9 @@ const detail = package_id => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description,
                  C.contact_name, A.ing_date, A.ent_date, A.status, C.main_address, C.entrega,
                  A.entregado, A.delivery, A.cancelado, A.weight, A.anticipo, A.total_a_pagar,
-                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa, A.guia, A.total_iva, A.poliza
+                 A.dai, A.cif, A.importe, A.costo_producto, A.tasa, A.guia, A.total_iva, A.poliza,
+                 A.voucher_bill,
+                 A.voucher_payment
                  FROM paquetes A
                  LEFT JOIN paquetes_detail B on A.package_id = B.package_id
                  LEFT JOIN clientes C on A.client_id = C.client_id
@@ -154,7 +156,9 @@ const updateStatus = (data, package_id, date, status) => {
                   total_iva = ${data.iva},
                   guia = '${data.guia}',
                   poliza = '${data.poliza}',
-                  costo_producto = ${data.cost}
+                  costo_producto = ${data.cost},
+                  voucher_bill = '${data.voucher_bill}',
+                  voucher_payment = '${data.voucher_payment}'
                   WHERE package_id = ${parseInt(package_id, 10)};`
 
   return query
