@@ -12,9 +12,12 @@ AWS.config.update({ region: 'us-east-1' })
 module.exports.readManifest = async (event, context) => {
   const connection = await mysql.createConnection(dbConfig)
   try {
-    const status = event.queryStringParameters && event.queryStringParameters.status ? event.queryStringParameters.status : undefined
+    const params = {
+      status: event.queryStringParameters && event.queryStringParameters.status,
+      description: event.queryStringParameters && event.queryStringParameters.description,
+    }
 
-    const [manifests] = await connection.execute(storage.readManifest(status))
+    const [manifests] = await connection.execute(storage.readManifest(params))
 
     return response(200, manifests, connection)
   } catch (error) {
@@ -92,10 +95,13 @@ module.exports.readMaxManifest = async (event, context) => {
 module.exports.readPackagesByManifest = async event => {
   const connection = await mysql.createConnection(dbConfig)
   try {
-    const manifest_id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
-    const noNullMaster = event.queryStringParameters && event.queryStringParameters.no_null_master
+    const params = {
+      manifest_id: event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined,
+      polizaFilter: event.queryStringParameters ? event.queryStringParameters.poliza : '',
+      noNullMaster: event.queryStringParameters && event.queryStringParameters.no_null_master,
+    }
 
-    let [result] = await connection.execute(storage.getPackagesByManifestId(manifest_id, noNullMaster))
+    let [result] = await connection.execute(storage.getPackagesByManifestId(params))
 
     return response(200, result, connection)
   } catch (error) {
