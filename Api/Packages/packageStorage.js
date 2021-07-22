@@ -266,11 +266,22 @@ const closeGuide = (data, date) => {
 }
 
 const getGuides = () => {
-  const query = `SELECT g.id as id, p.master as master, p.poliza as poliza, g.status as status, COUNT(p.package_id) as paquetes
-                  FROM guides g
-                  LEFT JOIN paquetes p on g.master = p.master AND g.poliza = p.poliza
-                  GROUP by g.master, g.poliza
-                  ORDER by g.id DESC`
+  const query = `SELECT
+                  g.id AS id,
+                  g.MASTER AS master,
+                  g.poliza AS poliza,
+                  g.STATUS AS status,
+                  COUNT( p.package_id ) AS paquetes 
+                FROM
+                  guides g
+                  LEFT JOIN paquetes p ON g.MASTER = p.MASTER 
+                AND g.poliza = p.poliza 
+                GROUP BY
+                  g.master,
+                  g.poliza 
+                ORDER BY
+                  g.id DESC`
+  
   return query
 }
 
