@@ -339,12 +339,7 @@ const getUncompleteManifests = manifestIds => `
 `
 
 const readGuideByMaster = master => `
-  SELECT
-    g.id,
-    g.master,
-    g.poliza,
-    g.status,
-    (SELECT COUNT(p.package_id) FROM paquetes p WHERE p.master = g.master) AS paquetes
+  SELECT g.id, g.master, g.poliza, g.status
   FROM guides g
   WHERE g.master = '${master}'
 `
