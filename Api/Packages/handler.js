@@ -652,6 +652,23 @@ module.exports.updateTariff = async event => {
   }
 }
 
+module.exports.readGuide = async event => {
+  try {
+    const master = event.pathParameters && event.pathParameters.master ? event.pathParameters.master : undefined
+
+    if (master === undefined) throw new Error('master missing')
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    const [guides] = await connection.execute(storage.readGuideByMaster(master))
+
+    return response(200, guides, connection)
+  } catch (e) {
+    console.log(e, 'catch')
+    return response(400, e, null)
+  }
+}
+
 async function sendSMSviaSNS(params) {
   const payload = {
     profile: params.profile,
