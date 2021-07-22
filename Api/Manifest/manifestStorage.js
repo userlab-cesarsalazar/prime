@@ -27,8 +27,6 @@ const getPackagesByManifestId = params => {
   const polizaWhereCondition = params.polizaFilter ? `AND A.poliza LIKE '%${params.polizaFilter}%'` : ''
   const noNullWhereCondition = params.noNullMaster ? 'AND (A.master = "" OR A.master IS NULL) AND (A.poliza = "" OR A.poliza IS NULL)' : ''
 
-  const manifestId_ = (typeof params === 'object' ? params.manifest_id : params)
-  
   return `SELECT A.package_id, A.tracking, S.name as supplier_name, C.client_name, A.weight, A.description,
     A.client_id as warehouse, A.costo_producto, A.cif, A.tasa, A.status, A.importe, A.guia, A.cif, A.dai,
     A.master, A.poliza, A.manifest_id, A.total_iva, A.total_a_pagar, A.ing_date, A.pieces, A.tariff_code,
@@ -38,7 +36,7 @@ const getPackagesByManifestId = params => {
     LEFT JOIN clientes C on A.client_id = C.client_id 
     LEFT JOIN suppliers S on A.supplier_id = S.id
     LEFT JOIN tariffs T on A.tariff_code = T.id
-    WHERE A.manifest_id = ${manifestId_} ${polizaWhereCondition} ${noNullWhereCondition}`
+    WHERE A.manifest_id = ${params.manifest_id} ${polizaWhereCondition} ${noNullWhereCondition}`
 }
 
 module.exports = {

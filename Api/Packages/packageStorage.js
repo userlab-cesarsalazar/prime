@@ -349,6 +349,12 @@ const getUncompleteManifests = manifestIds => `
     AND (poliza = "" OR poliza IS NULL)
 `
 
+const readGuideByMaster = master => `
+  SELECT g.id, g.master, g.poliza, g.status
+  FROM guides g
+  WHERE g.master = '${master}'
+`
+
 module.exports = {
   get: read,
   post: create,
@@ -378,4 +384,5 @@ module.exports = {
   getTariffs,
   updatePackageTariff,
   getUncompleteManifests,
+  readGuideByMaster,
 }
