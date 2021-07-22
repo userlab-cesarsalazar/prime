@@ -114,10 +114,12 @@ module.exports.readPackagesByManifest = async event => {
 module.exports.exportManifest = async event => {
   const connection = await mysql.createConnection(dbConfig)
   try {
-    const manifest_id = event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : undefined
-    const includeTariff = event.queryStringParameters && event.queryStringParameters.include_tariff
+    const params = {
+      manifest_id: event.pathParameters && event.pathParameters.id ? JSON.parse(event.pathParameters.id) : null,
+      includeTariff: event.queryStringParameters && event.queryStringParameters.include_tariff,
+    }
 
-    let [result] = await connection.execute(storage.getPackagesByManifestId(manifest_id))
+    let [result] = await connection.execute(storage.getPackagesByManifestId(params))
     let report
     let file
 
@@ -159,7 +161,7 @@ module.exports.exportManifest = async event => {
       },
     ]
 
-    if (includeTariff) {
+    if (params.includeTariff) {
       const tariffHeaders = [
         { name: 'Numero de partida Arancelaria', column: 'tariff_nro_partida', width: 15 },
         { name: 'Descripcion', column: 'tariff_description', width: 30 },
@@ -191,7 +193,7 @@ module.exports.exportManifest = async event => {
 
     file = await report.xlsx.writeBuffer()
 
-    return await fileResponse(200, file.toString('base64'), connection, manifest_id)
+    return await fileResponse(200, file.toString('base64'), connection, params.manifest_id)
   } catch (error) {
     const message = error.message ? error.message : error
 
