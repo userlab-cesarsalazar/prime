@@ -204,15 +204,15 @@ functions:
           path: packages/guides
           method: post
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
@@ -226,15 +226,15 @@ functions:
           path: packages/guides
           method: put
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
@@ -248,15 +248,15 @@ functions:
           path: packages/guides
           method: get
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
@@ -283,15 +283,15 @@ functions:
           path: packages/sms
           method: post
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
@@ -305,15 +305,15 @@ functions:
           path: packages/manifest/{manifest_id}
           method: get
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
@@ -397,15 +397,15 @@ functions:
           path: packages/guide/{master}
           method: get
           cors:
-          origin: '*'
-          allowCredentials: true
-          headers:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
-            - X-Amz-User-Agent
+            origin: '*'
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
