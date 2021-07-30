@@ -41,13 +41,14 @@ const read = (page, type, id) => {
 }
 
 const getTariffs = fields => {
-  const codeWhereCondition = fields.code ? `id = ${fields.code}` : '1'
-  const descriptionWhereCondition = fields.description ? `description LIKE '%${fields.description}%'` : '1'
+  const codeWhereCondition = fields && fields.code ? `id = ${fields.code}` : '1'
+  const tariffCodeWhereCondition = fields && fields.tariff_code ? `code = '${fields.tariff_code}'` : '1'
+  const descriptionWhereCondition = fields && fields.description ? `description LIKE '%${fields.description}%'` : '1'
 
   return `
     SELECT id, code, description, tasa
     FROM tariffs
-    WHERE ${codeWhereCondition} AND ${descriptionWhereCondition}
+    WHERE ${codeWhereCondition} AND ${descriptionWhereCondition} AND ${tariffCodeWhereCondition}
   `
 }
 
@@ -281,7 +282,7 @@ const getGuides = () => {
                   g.poliza 
                 ORDER BY
                   g.id DESC`
-  
+
   return query
 }
 
