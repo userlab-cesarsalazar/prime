@@ -25,7 +25,12 @@ const updateManifest = (data, id) => `UPDATE manifest SET description='${data.de
 
 const getPackagesByManifestId = params => {
   const polizaWhereCondition = params.polizaFilter ? `AND A.poliza LIKE '%${params.polizaFilter}%'` : ''
-  const noNullWhereCondition = params.noNullMaster ? 'AND (A.master = "" OR A.master IS NULL) AND (A.poliza = "" OR A.poliza IS NULL)' : ''
+  const noNullWhereCondition =
+    String(params.noNullMaster) === '0'
+      ? 'AND (A.master = "" OR A.master IS NULL) AND (A.poliza = "" OR A.poliza IS NULL)'
+      : String(params.noNullMaster) === '1'
+      ? 'AND (A.master <> "" OR A.master IS NOT NULL) AND (A.poliza <> "" OR A.poliza IS NOT NULL)'
+      : ''
 
   return `SELECT A.package_id, A.tracking, S.name as supplier_name, C.client_name, A.weight, A.description,
     A.client_id as warehouse, A.costo_producto, A.cif, A.tasa, A.status, A.importe, A.guia, A.cif, A.dai,

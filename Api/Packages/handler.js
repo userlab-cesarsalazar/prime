@@ -573,7 +573,7 @@ module.exports.packagesBulkUpdate = async event => {
 
         if (isUncomplete) return result
 
-        return [...(result || []), `(${id}, 'CLOSED')`]
+        return [...(result || []), `(${id}, 'PENDINGCLOSED')`]
       }, [])
 
       if (manifestValues && manifestValues[0]) await connection.execute(storage.manifestsBulkUpdate(manifestValues))
