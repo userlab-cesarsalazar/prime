@@ -7,13 +7,15 @@ const createManifest = data => ` INSERT INTO manifest
                   );`
 
 const readManifest = params => {
-  const statusWhereCondition = params.status ? `status = '${params.status}'` : `1=1`
-  const descriptionWhereCondition = params.description ? `description = '${params.description}'` : `1=1`
+  const statusWhereCondition = params.status ? `m.status = '${params.status.toUpperCase()}'` : `1=1`
+  const descriptionWhereCondition = params.description ? `m.description = '${params.description}'` : `1=1`
 
   return `
-    SELECT *
-    FROM manifest
+    SELECT m.manifest_id, m.description, m.status, COUNT(p.package_id) AS packages_count
+    FROM manifest m
+    LEFT JOIN paquetes p ON p.manifest_id = m.manifest_id
     WHERE ${statusWhereCondition} AND ${descriptionWhereCondition}
+    GROUP BY m.manifest_id
     ORDER BY manifest_id DESC LIMIT 25
   `
 }
