@@ -56,6 +56,57 @@ module.exports.detail = async (event, context) => {
   }
 }
 
+module.exports.readPackagesByTracking = async event => {
+  try {
+    const tracking = event.pathParameters && event.pathParameters.tracking
+
+    if (!tracking) throw 'pathParameters missing'
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    const [rawPackages] = await connection.execute(storage.readPackagesByTracking(), [tracking])
+
+    const packages = rawPackages.map(p => ({
+      provider: p.supplier_id,
+      carrier: p.carrier_id,
+      description: p.description,
+      billValue: p.costo_producto,
+      destiny: p.destination_id,
+      entranceDetail: {
+        quantity: 1,
+        grams: Math.round((Number(p.weight * 453.59237) + Number.EPSILON) * 100) / 100,
+        weight: p.weight,
+        pcs: 1,
+      },
+      tracking: p.tracking,
+      tariff: p.tasa,
+      providerNameTxt: p.provider_name,
+      billVoucher: p.voucher_bill,
+      paymentVoucher: p.voucher_payment,
+      consignee: {
+        id: p.id,
+        name: p.client_name,
+        email: p.email,
+        client_id: p.client_id,
+        phone: p.phone,
+        entrega: p.entrega,
+        cuota: p.cuota,
+        date_created: p.date_created,
+        preferences: p.preferences,
+        message_user: p.message_user,
+        nit: p.nit,
+        main_address: p.main_address,
+        flete: p.flete,
+        desaduanaje: p.desaduanaje,
+      },
+    }))
+
+    return response(200, packages, connection)
+  } catch (e) {
+    return response(400, e, null)
+  }
+}
+
 module.exports.create = async (event, context) => {
   try {
     let data = JSON.parse(event.body)

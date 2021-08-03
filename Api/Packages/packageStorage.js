@@ -40,6 +40,39 @@ const read = (page, type, id) => {
   return query
 }
 
+const readPackagesByTracking = () => `
+  SELECT
+    p.supplier_id,
+    p.carrier_id,
+    p.description,
+    p.costo_producto,
+    p.destination_id,
+    p.weight,
+    p.tracking,
+    p.tasa,
+    s.name AS provider_name,
+    p.voucher_bill,
+    p.voucher_payment,
+    c.id,
+    c.client_id,
+    c.client_name,
+    c.email,
+    c.phone,
+    c.entrega,
+    c.cuota,
+    c.date_created,
+    c.preferences,
+    c.message_user,
+    c.nit,
+    c.main_address,
+    c.flete,
+    c.desaduanaje
+  FROM paquetes p
+  LEFT JOIN suppliers s ON s.id = p.supplier_id
+  LEFT JOIN clientes c ON c.client_id = p.client_id
+  WHERE tracking = ?
+`
+
 const getTariffs = fields => {
   const codeWhereCondition = fields && fields.code ? `id = ${fields.code}` : '1'
   const tariffCodeWhereCondition = fields && fields.tariff_code ? `code = '${fields.tariff_code}'` : '1'
@@ -386,4 +419,5 @@ module.exports = {
   updatePackageTariff,
   getUncompleteManifests,
   readGuideByMaster,
+  readPackagesByTracking,
 }
