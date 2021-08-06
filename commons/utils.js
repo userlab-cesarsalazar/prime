@@ -70,6 +70,7 @@ let common = {
         .replace(/\$/g, '\\$')
         .replace(/'/g, "\\'")
         .replace(/"/g, '\\"')
+        .trim()
     }
 
     let escapedBody = {}
