@@ -163,12 +163,13 @@ module.exports.createWarehouseEntry = async event => {
 
     const body = escapeFields(getBody(event))
     const errorFields = requiredFields.filter(k => !body[k])
-
     if (errorFields.length > 0 || !body) throw new Error(`The fields ${errorFields.join(', ')} are required`)
 
     const [manifest] = await connection.execute(storage.findManifestById(body.manifest_id))
-
     if (!manifest) throw new Error('Invalid manifest Id')
+
+    const [trackingExists] = await connection.execute(storage.findPackagesByTracking(body.tracking))
+    if (trackingExists.length > 0) throw new Error('The provided tracking exists already')
 
     const [result] = await connection.execute(storage.findMaxPaqueteId())
 

@@ -118,6 +118,8 @@ const createWarehouseEntryDetail = (
 
 const findManifestById = manifest_id => `SELECT manifest_id FROM manifest WHERE manifest_id = ${manifest_id} AND status = 'OPEN'`
 
+const findPackagesByTracking = tracking => `SELECT package_id FROM paquetes WHERE tracking = '${tracking}'`
+
 module.exports = {
   createSupplier,
   readSuppliers,
@@ -131,4 +133,5 @@ module.exports = {
   createWarehouseEntryDetail,
   findMaxPaqueteId,
   findManifestById,
+  findPackagesByTracking,
 }
