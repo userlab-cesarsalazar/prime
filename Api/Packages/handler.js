@@ -80,6 +80,7 @@ module.exports.readPackagesByTracking = async event => {
       },
       tracking: p.tracking,
       tariff: p.tasa,
+      measurements:p.measurements,
       providerNameTxt: p.provider_name,
       billVoucher: p.voucher_bill,
       paymentVoucher: p.voucher_payment,

@@ -50,6 +50,7 @@ const readPackagesByTracking = () => `
     p.weight,
     p.tracking,
     p.tasa,
+    p.measurements,
     s.name AS provider_name,
     p.voucher_bill,
     p.voucher_payment,

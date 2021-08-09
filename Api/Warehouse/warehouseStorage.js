@@ -76,7 +76,8 @@ const createWarehouseEntry = (data, guia) => `
         manifest_id,
         destination_id,
         voucher_bill,
-        voucher_payment
+        voucher_payment,
+        measurements
     )
     VALUES (
         '${data.tracking}',
@@ -105,7 +106,8 @@ const createWarehouseEntry = (data, guia) => `
         ${data.manifest_id},
         ${data.destination_id},
         '${data.voucher_bill ? data.voucher_bill : null}',
-        '${data.voucher_payment ? data.voucher_payment : null}'
+        '${data.voucher_payment ? data.voucher_payment : null}',
+        '${data.measurements ? data.measurements : ''}'
     );`
 
 const createWarehouseEntryDetail = (
