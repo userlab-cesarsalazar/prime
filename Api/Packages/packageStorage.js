@@ -42,6 +42,7 @@ const read = (page, type, id) => {
 
 const readPackagesByTracking = () => `
   SELECT
+    p.guia,
     p.supplier_id,
     p.carrier_id,
     p.description,

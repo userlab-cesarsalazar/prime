@@ -67,6 +67,7 @@ module.exports.readPackagesByTracking = async event => {
     const [rawPackages] = await connection.execute(storage.readPackagesByTracking(), [tracking])
 
     const packages = rawPackages.map(p => ({
+      guia:p.guia,
       provider: p.supplier_id,
       carrier: p.carrier_id,
       description: p.description,
