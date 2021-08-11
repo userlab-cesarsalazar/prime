@@ -105,8 +105,8 @@ const createWarehouseEntry = (data, guia) => `
         ${data.carrier_id},
         ${data.manifest_id},
         ${data.destination_id},
-        '${data.voucher_bill ? data.voucher_bill : null}',
-        '${data.voucher_payment ? data.voucher_payment : null}',
+        ${data.voucher_bill.length > 5 ? "'"+data.voucher_bill+"'" : null},
+        ${data.voucher_payment.length > 5 ? "'"+data.voucher_payment+"'" : null},
         '${data.measurements ? data.measurements : ''}'
     );`
 
