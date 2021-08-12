@@ -577,7 +577,7 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     console.log('Request Body', data)
-    const requiredFields = ['package_id', 'tasa', 'cif', 'dai', 'total_iva', 'importe', 'total_a_pagar', 'poliza', 'manifest_id']
+    const requiredFields = ['package_id','cif','total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
@@ -591,12 +591,12 @@ module.exports.packagesBulkUpdate = async event => {
 
       const value = `(
         ${d.package_id ? d.package_id : null},
-        ${d.tasa ? d.tasa : null},
+        ${d.tasa ? d.tasa : 0},
         ${d.cif ? d.cif : null},
-        ${d.dai ? d.dai : null},
-        ${d.total_iva ? d.total_iva : null},
-        ${d.importe ? d.importe : null},
-        ${d.total_a_pagar ? `'${d.total_a_pagar}'` : null},
+        ${d.dai ? d.dai : 0},
+        ${d.total_iva ? d.total_iva : 0},
+        ${d.importe ? d.importe : 0},
+        ${d.total_a_pagar ? `'${d.total_a_pagar}'` : 0},
         ${d.poliza ? `'${d.poliza}'` : null},
         ${d.master ? `'${d.master}'` : null},        
         '${ing_date}',
