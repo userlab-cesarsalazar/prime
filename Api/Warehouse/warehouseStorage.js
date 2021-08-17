@@ -105,8 +105,8 @@ const createWarehouseEntry = (data, guia) => `
         ${data.carrier_id},
         ${data.manifest_id},
         ${data.destination_id},
-        ${data.voucher_bill.length > 5 ? "'"+data.voucher_bill+"'" : null},
-        ${data.voucher_payment.length > 5 ? "'"+data.voucher_payment+"'" : null},
+        ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},
+        ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},
         '${data.measurements ? data.measurements : ''}'
     );`
 
@@ -122,6 +122,10 @@ const findManifestById = manifest_id => `SELECT manifest_id FROM manifest WHERE 
 
 const findPackagesByTracking = tracking => `SELECT package_id FROM paquetes WHERE tracking = '${tracking}'`
 
+const getUserInfo = client_id => `
+  SELECT client_id, email, contact_name, client_name, phone FROM clientes WHERE client_id = '${client_id}'
+`
+
 module.exports = {
   createSupplier,
   readSuppliers,
@@ -136,4 +140,5 @@ module.exports = {
   findMaxPaqueteId,
   findManifestById,
   findPackagesByTracking,
+  getUserInfo,
 }

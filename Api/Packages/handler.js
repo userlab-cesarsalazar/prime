@@ -7,7 +7,7 @@ let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/
 let storage = require('./packageStorage')
 const request = require('request')
 const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-const { openSession } = require('./functions')
+const { openSession, getSendSMSviaSNSParams, sendSMSviaSNS } = require('./functions')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -67,7 +67,7 @@ module.exports.readPackagesByTracking = async event => {
     const [rawPackages] = await connection.execute(storage.readPackagesByTracking(), [tracking])
 
     const packages = rawPackages.map(p => ({
-      guia:p.guia,
+      guia: p.guia,
       provider: p.supplier_id,
       carrier: p.carrier_id,
       description: p.description,
@@ -81,7 +81,7 @@ module.exports.readPackagesByTracking = async event => {
       },
       tracking: p.tracking,
       tariff: p.tasa,
-      measurements:p.measurements,
+      measurements: p.measurements,
       providerNameTxt: p.provider_name,
       billVoucher: p.voucher_bill,
       paymentVoucher: p.voucher_payment,
@@ -353,17 +353,19 @@ module.exports.sendPrime = async event => {
     //subir codigo de los mensajes.
     if (!params) throw 'no_params'
 
-    let SMS = ''
+    let SMS = `NOW EXPRESS informa que su paquete con tracking ${params.data.tracking} ha sido recibido en nuestra bodega de Miami. Cualquier consulta contáctenos a 2376-4699 / 3237-0023.`
 
-    switch (params.data.client_id.charAt(0)) {
-      case 'P':
-        SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
-        break
-      case 'T':
-        SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
-        break
-      default:
-        SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
+    if (!params.warehouse) {
+      switch (params.data.client_id.charAt(0)) {
+        case 'P':
+          SMS = `NOW EXPRESS informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total}  en nuestras oficinas. Contactenos al telefono 2376-4699 / 3237-0023`
+          break
+        case 'T':
+          SMS = `TRAESTODO informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 4154-4275`
+          break
+        default:
+          SMS = `Rapidito Express informa que tiene un paquete con tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight} . Para coordinación de entrega comunicarse al 5803-2545 o email: Info@rapiditoexpress.com`
+      }
     }
 
     const phone = `502${params.profile[0].phone}`
@@ -577,7 +579,7 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     console.log('Request Body', data)
-    const requiredFields = ['package_id','cif','total_a_pagar', 'poliza', 'manifest_id']
+    const requiredFields = ['package_id', 'cif', 'total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
@@ -614,7 +616,7 @@ module.exports.packagesBulkUpdate = async event => {
     }, {})
 
     const connection = await mysql.createConnection(dbConfig)
-    console.log('DB connection created', connection)
+
     const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
     console.log('Update Packages', updateValues)
     console.log('Update DB Info', updateInfo)
@@ -633,28 +635,9 @@ module.exports.packagesBulkUpdate = async event => {
 
       const [smsData] = await connection.execute(storage.getSMSData(packagesIds))
       console.log('SMS data', smsData)
-      const sendSMSPromises = smsData.map(d => {
-        const params = {
-          data: {
-            package_id: d.package_id,
-            tracking: d.tracking,
-            client_id: d.client_id,
-            weight: d.weight,
-            description: d.description,
-            ing_date: d.ing_date,
-            status: d.status,
-            total: d.total,
-          },
-          profile: [
-            {
-              client_id: d.client_id,
-              email: d.email,
-              contact_name: d.contact_name,
-              client_name: d.client_name,
-              phone: d.phone,
-            },
-          ],
-        }
+
+      const sendSMSPromises = smsData.map(data => {
+        const params = getSendSMSviaSNSParams(data)
 
         return sendSMSviaSNS(params)
       })
@@ -720,17 +703,4 @@ module.exports.readGuide = async event => {
     console.log(e, 'catch')
     return response(400, e, null)
   }
-}
-
-async function sendSMSviaSNS(params) {
-  const payload = {
-    profile: params.profile,
-    data: params.data,
-  }
-  const snsParams = {
-    Message: JSON.stringify(payload),
-    TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
-  }
-  console.log('SNS params', snsParams)
-  await sns.publish(snsParams).promise()
 }
