@@ -181,6 +181,7 @@ module.exports.createWarehouseEntry = async event => {
     const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
     const params = {
       ...getSendSMSviaSNSParams({ ...body, ...profileData }),
+      warehouse: true,
     }
     await sendSMSviaSNS(params)
 
