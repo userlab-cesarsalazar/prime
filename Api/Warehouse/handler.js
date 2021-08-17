@@ -4,6 +4,7 @@ const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./warehouseStorage')
+const { getSendSMSviaSNSParams, sendSMSviaSNS } = require('../Packages/functions')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -176,6 +177,13 @@ module.exports.createWarehouseEntry = async event => {
     const newGuiaId = parseInt(result[0].id) + 1
 
     await connection.execute(storage.createWarehouseEntry(body, newGuiaId))
+
+    const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
+    const params = {
+      ...getSendSMSviaSNSParams({ ...body, ...profileData }),
+      warehouse: true,
+    }
+    await sendSMSviaSNS(params)
 
     return await response(200, { guia: newGuiaId }, connection)
   } catch (error) {
