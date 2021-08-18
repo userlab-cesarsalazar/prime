@@ -136,7 +136,7 @@ const create = (data, newGuiaId) => {
                   ${data.importe ? data.importe : 0.0},
                   '${data.pn_master.master ? data.pn_master.master : ''}',
                   '${data.pn_master.poliza ? data.pn_master.poliza : ''}',
-                  '${newGuiaId}',
+                  '${newGuiaId ? newGuiaId : data.guia}',
                   ${data.tasa ? data.tasa : 0.0},
                   ${data.iva ? data.iva : 0.0})`
 
