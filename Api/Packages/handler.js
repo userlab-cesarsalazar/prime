@@ -111,67 +111,74 @@ module.exports.readPackagesByTracking = async event => {
 
 module.exports.create = async (event, context) => {
   try {
-    let data = JSON.parse(event.body)
-    if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
-
-    data.ing_date = date
-
-    let connection = await mysql.createConnection(dbConfig)
-
-    const [checkPackage] = await connection.execute(storage.findByTracking(data))
+    let data = JSON.parse(event.body);
+    if (!data.tracking || !data.client_id || !data.weight || !data.description)
+      throw "missing_parameter.";
+    
+    data.ing_date = date;
+    
+    let connection = await mysql.createConnection(dbConfig);
+    
+    const [checkPackage] = await connection.execute(
+      storage.findByTracking(data)
+    );
     if (checkPackage.length > 0) {
-      console.log('update', data)
+      console.log("update", data);
       //update
-      const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
-      if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
+      const [update] = await connection.execute(
+        storage.put(checkPackage[0], data, date, null)
+      );
+      if (update)
+        await connection.execute(
+          storage.postDetail(data, checkPackage[0].package_id, date)
+        );
     } else {
-      console.log('create', data)
-      const [result] = await connection.execute(storage.findMaxPaqueteId())
-
-      const newGuiaId = parseInt(result[0].id) + 1
+      console.log("create", data);
       //create
-      const [save] = await connection.execute(storage.post(data, newGuiaId))
-      if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
+      const [save] = await connection.execute(storage.post(data));
+      if (save)
+        await connection.execute(storage.postDetail(data, save.insertId, date));
     }
-
-    const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
-
-    if (!data.status || data.status !== 'Registrado') {
-      let template = prepareToSend(data, userData)
-      const validate =
-        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    
+    const [userData] = await connection.execute(
+      storage.getUserInfo(data.client_id)
+    );
+    
+    if (!data.status || data.status !== "Registrado") {
+      let template = prepareToSend(data, userData);
+      const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (validate.test(String(userData[0].email).toLowerCase())) {
         //await notifyEmail(AWS, template)
       }
-
+      
       let payload = {
         profile: userData,
         data: data,
-      }
+      };
       const params = {
         Message: JSON.stringify(payload),
-        TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
-      }
-
+        TopicArn: `arn:aws:sns:us-east-1:${process.env["ACCOUNT_ID"]}:sms-${process.env["STAGE"]}-tigo`,
+      };
+      
       await new Promise((resolve, reject) => {
-        sns.publish(params, error => {
+        sns.publish(params, (error) => {
           if (error) {
-            console.log('SNS error ', error)
-            reject(error)
+            console.log("SNS error ", error);
+            reject(error);
           } else {
-            console.log('added')
-            resolve('added')
+            console.log("added");
+            resolve("added");
           }
-        })
-      })
+        });
+      });
     }
-
-    return response(200, data, connection)
+    
+    return response(200, data, connection);
   } catch (e) {
-    console.log(e)
-    return response(400, e, null)
+    console.log(e);
+    return response(400, e, null);
   }
-}
+};
 
 module.exports.update = async (event, context) => {
   try {
