@@ -1,6 +1,10 @@
 const Base64 = require('base-64')
 const request = require('request')
 
+const AWS = require('aws-sdk')
+AWS.config.update({ region: 'us-east-1' })
+const sns = new AWS.SNS()
+
 module.exports.openSession = async () => {
   const credential = Base64.encode(process.env['TIGO_USER'] + ':' + process.env['TIGO_PASSWORD'])
   const options = {
