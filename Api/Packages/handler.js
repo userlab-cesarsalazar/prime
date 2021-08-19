@@ -420,16 +420,16 @@ module.exports.sendSMSTigo = async event => {
         case 'P':
           SMS = params.warehouse ?
           `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete con tracking ${params.data.tracking}.  Cualquier consulta contáctanos a 2376-4699 / 3237-0023.`
-          : `NOW EXPRESS, tu paquete ya esta listo para entrega! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id} Total: ${params.data.total} Contáctanos: 2376-4699 / 3237-0023`
+          : `NOW EXPRESS, tu paquete esta listo para entrega en Guatemala! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id} Total: ${params.data.total} Contáctanos: 2376-4699 / 3237-0023`
           break
         case 'T':
           SMS = params.warehouse ? 
           `TRAESTODO, hemos recibido en nuestras bodegas de MIAMI tu paquete con tracking ${params.data.tracking}, Cualquier consulta contáctanos al 4154-4275`
-          :`TRAESTODO, tu paquete ya esta listo para entrega! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Contáctanos: 4154-4275`
+          :`TRAESTODO, tu paquete esta listo para entrega en Guatemala! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Contáctanos: 4154-4275`
           break
         default:
           SMS = params.warehouse ? `Rapidito Express, hemos recibido en nuestras bodegas de MIAMI tu paquete con tracking ${params.data.tracking}, Cualquier consulta contáctanos al 5803-2545 o email: Info@rapiditoexpress.com`
-          :`Rapidito Express, tu paquete ya esta listo para entrega! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Contáctanos: 5803-2545 o email: Info@rapiditoexpress.com`
+          :`Rapidito Express, tu paquete esta listo para entrega en Guatemala! Tracking ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. Contáctanos: 5803-2545 o email: Info@rapiditoexpress.com`
       }
     
     const phone = `502${params.profile[0].phone}`
