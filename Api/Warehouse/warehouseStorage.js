@@ -77,7 +77,8 @@ const createWarehouseEntry = (data, guia) => `
         destination_id,
         voucher_bill,
         voucher_payment,
-        measurements
+        measurements,
+        valor_miami
     )
     VALUES (
         '${data.tracking}',
@@ -107,7 +108,8 @@ const createWarehouseEntry = (data, guia) => `
         ${data.destination_id},
         ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},
         ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},
-        '${data.measurements ? data.measurements : ''}'
+        '${data.measurements ? data.measurements : ''}',
+        ${data.invoice_price ? data.invoice_price : 0}
     );`
 
 const createWarehouseEntryDetail = (

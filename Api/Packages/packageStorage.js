@@ -354,11 +354,11 @@ const getSMSData = packagesIds => {
 }
 
 const packagesBulkUpdate = updateValues => `
-  INSERT INTO paquetes (package_id, tasa, cif, dai, total_iva, importe, total_a_pagar, poliza, master, ing_date, status)
+  INSERT INTO paquetes (package_id, tasa, cif, dai, total_iva, importe, total_a_pagar, poliza, master, ing_date, status,costo_producto)
   VALUES ${updateValues.join(', ')}
   ON DUPLICATE KEY UPDATE
     tasa = VALUES(tasa),
-    cif = VALUES(cif),
+    cif = VALUES(total_iva),    
     dai = VALUES(dai),
     total_iva = VALUES(total_iva),
     importe = VALUES(importe),
@@ -366,7 +366,8 @@ const packagesBulkUpdate = updateValues => `
     poliza = VALUES(poliza),
     master = VALUES(master),
     ing_date = VALUES(ing_date),
-    status = VALUES(status);
+    status = VALUES(status),
+    costo_producto = VALUES(costo_producto);
 `
 
 const manifestsBulkUpdate = manifestValues => `
