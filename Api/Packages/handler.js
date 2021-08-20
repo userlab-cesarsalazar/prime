@@ -591,7 +591,7 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     console.log('Request Body', data)
-    const requiredFields = ['package_id', 'cif', 'total_a_pagar', 'poliza', 'manifest_id']
+    const requiredFields = ['package_id', 'costo_producto', 'total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 

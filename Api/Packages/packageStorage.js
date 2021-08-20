@@ -91,8 +91,9 @@ const updatePackageTariff = (tariff_code, package_id) => `
   UPDATE paquetes SET
     tariff_code = ${tariff_code},
     tasa = (SELECT tasa FROM tariffs WHERE id = ${tariff_code}),
-    dai = (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code})),
-    total_iva = ((cif + (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code}))) * 0.12)
+    dai = (costo_producto * (SELECT tasa FROM tariffs WHERE id = ${tariff_code})),
+    total_iva = ((costo_producto + (costo_producto * (SELECT tasa FROM tariffs WHERE id = ${tariff_code}))) * 0.12),
+    cif = total_iva
   WHERE package_id = ${package_id}
 `
 
