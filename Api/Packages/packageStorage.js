@@ -91,8 +91,9 @@ const updatePackageTariff = (tariff_code, package_id) => `
   UPDATE paquetes SET
     tariff_code = ${tariff_code},
     tasa = (SELECT tasa FROM tariffs WHERE id = ${tariff_code}),
-    dai = (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code})),
-    total_iva = ((cif + (cif * (SELECT tasa FROM tariffs WHERE id = ${tariff_code}))) * 0.12)
+    dai = (costo_producto * (SELECT tasa FROM tariffs WHERE id = ${tariff_code})),
+    total_iva = ((costo_producto + (costo_producto * (SELECT tasa FROM tariffs WHERE id = ${tariff_code}))) * 0.12),
+    cif = total_iva
   WHERE package_id = ${package_id}
 `
 
@@ -354,11 +355,11 @@ const getSMSData = packagesIds => {
 }
 
 const packagesBulkUpdate = updateValues => `
-  INSERT INTO paquetes (package_id, tasa, cif, dai, total_iva, importe, total_a_pagar, poliza, master, ing_date, status)
+  INSERT INTO paquetes (package_id, tasa, cif, dai, total_iva, importe, total_a_pagar, poliza, master, ing_date, status,costo_producto)
   VALUES ${updateValues.join(', ')}
   ON DUPLICATE KEY UPDATE
     tasa = VALUES(tasa),
-    cif = VALUES(cif),
+    cif = VALUES(total_iva),    
     dai = VALUES(dai),
     total_iva = VALUES(total_iva),
     importe = VALUES(importe),
@@ -366,7 +367,8 @@ const packagesBulkUpdate = updateValues => `
     poliza = VALUES(poliza),
     master = VALUES(master),
     ing_date = VALUES(ing_date),
-    status = VALUES(status);
+    status = VALUES(status),
+    costo_producto = VALUES(costo_producto);
 `
 
 const manifestsBulkUpdate = manifestValues => `

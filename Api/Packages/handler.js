@@ -591,7 +591,7 @@ module.exports.packagesBulkUpdate = async event => {
      */
     const data = JSON.parse(event.body)
     console.log('Request Body', data)
-    const requiredFields = ['package_id', 'cif', 'total_a_pagar', 'poliza', 'manifest_id']
+    const requiredFields = ['package_id', 'costo_producto', 'total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
@@ -606,7 +606,7 @@ module.exports.packagesBulkUpdate = async event => {
       const value = `(
         ${d.package_id ? d.package_id : null},
         ${d.tasa ? d.tasa : 0},
-        ${d.cif ? d.cif : null},
+        ${d.cif ? d.cif : null},        
         ${d.dai ? d.dai : 0},
         ${d.total_iva ? d.total_iva : 0},
         ${d.importe ? d.importe : 0},
@@ -614,7 +614,8 @@ module.exports.packagesBulkUpdate = async event => {
         ${d.poliza ? `'${d.poliza}'` : null},
         ${d.master ? `'${d.master}'` : null},        
         '${ing_date}',
-        '${status}'
+        '${status}',
+        ${d.costo_producto ? d.costo_producto : null}
       )`
 
       const isDuplicate = r.manifestIds && r.manifestIds.some(id => Number(id) === Number(d.manifest_id))
