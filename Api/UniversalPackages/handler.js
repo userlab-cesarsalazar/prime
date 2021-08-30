@@ -41,8 +41,9 @@ module.exports.read = async (event, context) => {
     const [packages] = await connection.execute(storage.get(params))
     
     let data = {
+      warehouse: packages,
       api24: {...api24},
-      warehouse: packages
+      
     }
 
     return response(200, data, connection)
