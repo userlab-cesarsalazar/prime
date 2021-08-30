@@ -42,7 +42,7 @@ module.exports.read = async (event, context) => {
     
     let data = {
       api24: {...api24},
-      wharehouse: packages
+      warehouse: packages
     }
 
     return response(200, data, connection)
