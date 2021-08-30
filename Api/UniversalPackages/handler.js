@@ -20,19 +20,19 @@ module.exports.read = async (event, context) => {
     
     if(event.pathParameters.tracking)
       params.trackingNumber = event.pathParameters.tracking
-    console.log(process.env['TOKEN_24API']);
-    console.log(process.env['SHIP_API']);
+
     let api24 = await new Promise((resolve, reject) => {
       request.post({
         headers: {
           'content-type': 'application/json',
-          'Authorization': 'Bearer apik_gwIJFvWHJCCIWYG8FR4g4RcsU8FkwM'
+          'Authorization': process.env['TOKEN_24API']
         },
-        url: 'https://api.ship24.com/public/v1/tracking/search',
+        url: process.env['URL_24API'],
         body: params,
         json:true
       }, function(error, response, body){
-        console.log(body);
+        if(error)
+          reject(error)
         resolve(body)
       });
     })

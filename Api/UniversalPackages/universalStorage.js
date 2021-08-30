@@ -2,7 +2,7 @@ const read = (tracking) => {
   const query = `SELECT * FROM paquetes A
                  WHERE A.tracking = '${tracking.trackingNumber}'
                  ORDER BY A.package_id`
-  console.log(query);
+  
   return query
 }
 

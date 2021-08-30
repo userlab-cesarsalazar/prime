@@ -22,6 +22,7 @@ provider:
     ACCOUNT_ID: ${file(../../commons/credentials.json):${self:provider.stage}.awsAccountId}
     SHIP_API: ${file(../../commons/credentials.json):${self:provider.stage}.ship24}
     TOKEN_24API: ${file(../../commons/credentials.json):${self:provider.stage}.token24}
+    URL_24API: ${file(../../commons/credentials.json):${self:provider.stage}.urlship24}
 
   iamRoleStatements:
     - Effect: Allow
@@ -56,8 +57,6 @@ functions:
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-          authorizer:
-            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
   universalPost:
