@@ -53,19 +53,3 @@ module.exports.read = async (event, context) => {
   }
 }
 
-module.exports.create = async (event, context) => {
-  try {
-    let data = JSON.parse(event.body)
-    console.log(data);
-    if (!data.tracking || !data.carrier ) throw 'missing_parameter.'
-    
-    const connection = await mysql.createConnection(dbConfig)
-    const [packages] = await connection.execute(storage.post(data,date))
-    
-    return response(200, packages, connection)
-  } catch (e) {
-    console.log(e, 'catch')
-    return response(400, e, null)
-  }
-}
-
