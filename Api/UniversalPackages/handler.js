@@ -20,7 +20,7 @@ module.exports.read = async (event, context) => {
     
     if(event.pathParameters.tracking)
       params.trackingNumber = event.pathParameters.tracking
-
+    
     let api24 = await new Promise((resolve, reject) => {
       request.post({
         headers: {
@@ -38,7 +38,15 @@ module.exports.read = async (event, context) => {
     })
     
     const connection = await mysql.createConnection(dbConfig)
-    const [packages] = await connection.execute(storage.get(params))
+    let [packages] = await connection.execute(storage.get(params))
+    
+    if(packages.length > 0 ){
+      packages.forEach(x => {
+        if(x.ing_date){
+          x.ing_date = new Date(x.ing_date)
+        }
+      })
+    }
     
     let data = {
       warehouse: packages,

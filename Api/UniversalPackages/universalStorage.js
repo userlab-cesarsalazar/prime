@@ -1,5 +1,5 @@
 const read = (tracking) => {
-  const query = `SELECT tracking, package_id, status FROM paquetes A
+  const query = `SELECT tracking, package_id, status, ing_date FROM paquetes A
                  WHERE A.tracking = '${tracking.trackingNumber}'
                  ORDER BY A.package_id`
   
