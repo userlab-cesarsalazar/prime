@@ -23,6 +23,10 @@ provider:
     SHIP_API: ${file(../../commons/credentials.json):${self:provider.stage}.ship24}
     TOKEN_24API: ${file(../../commons/credentials.json):${self:provider.stage}.token24}
     URL_24API: ${file(../../commons/credentials.json):${self:provider.stage}.urlship24}
+    TEAMWORK_TOKEN: ${file(../../commons/credentials.json):${self:provider.stage}.teamworkToken}
+    TEAMWORK_URL: ${file(../../commons/credentials.json):${self:provider.stage}.teamworkURL}
+    ASSIGNED_TO: ${file(../../commons/credentials.json):${self:provider.stage}.assignedTo}
+    INBOX_ID: ${file(../../commons/credentials.json):${self:provider.stage}.inboxId}
 
   iamRoleStatements:
     - Effect: Allow
@@ -59,3 +63,24 @@ functions:
               - X-Amz-User-Agent
     layers:
        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+  createTicket:
+    handler: handler.createTicket
+    timeout: 30
+    events:
+      - http:
+          path: create-ticket
+          method: post
+          cors:
+            origin: "*"
+            allowCredentials: true
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+          authorizer:
+            arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
