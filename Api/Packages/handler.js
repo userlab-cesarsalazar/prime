@@ -414,7 +414,7 @@ module.exports.sendSMSTigo = async event => {
 
     const session = await openSession()
 
-    if (!session.access_token) throw Error('Api de tigo no responde')
+    if (!session.access_token) throw Error('Api de tigo no responde.')
 
     console.log(params, 'params')
 
@@ -436,7 +436,7 @@ module.exports.sendSMSTigo = async event => {
           break
         default:
           SMS = params.warehouse ? 
-          `Rapidito Express, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 5803-2545`
+          `Rapidito Express, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
           :`Rapidito Express, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 5803-2545`
       }
     
