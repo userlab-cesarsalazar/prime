@@ -440,6 +440,10 @@ module.exports.sendSMSTigo = async event => {
           :`Rapidito Express, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 5803-2545`
       }
     
+      if (SMS.length > 160){  
+        SMS = SMS.slice(0,160)
+      }
+
     const phone = `502${params.profile[0].phone}`
 
     var options = {
