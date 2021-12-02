@@ -135,7 +135,14 @@ module.exports.create = async (event, context) => {
     } else {
       console.log("create", data);
       //create
-      const [save] = await connection.execute(storage.post(data));
+
+      /*  added by ledr
+          the guide is created automatically
+      */
+      const [result] = await connection.execute(storage.findMaxPaqueteById())
+      const newGuiaId = parseInt(result[0].id) + 1
+      const [save] = await connection.execute(storage.post(data,newGuiaId));
+
       if (save)
         await connection.execute(storage.postDetail(data, save.insertId, date));
     }

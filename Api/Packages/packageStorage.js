@@ -393,6 +393,8 @@ const readGuideByMaster = master => `
   WHERE g.master = '${master}'
 `
 
+const findMaxPaqueteById = () => 'SELECT IFNULL(MAX(CONVERT(guia, SIGNED INTEGER)), 0) AS id FROM paquetes'
+
 module.exports = {
   get: read,
   post: create,
@@ -424,4 +426,5 @@ module.exports = {
   getUncompleteManifests,
   readGuideByMaster,
   readPackagesByTracking,
+  findMaxPaqueteById
 }
