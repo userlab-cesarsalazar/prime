@@ -122,11 +122,33 @@ const createWarehouseEntryDetail = (
 
 const findManifestById = manifest_id => `SELECT manifest_id FROM manifest WHERE manifest_id = ${manifest_id} AND status = 'OPEN'`
 
-const findPackagesByTracking = tracking => `SELECT package_id FROM paquetes WHERE tracking = '${tracking}'`
+const findPackagesByTracking = tracking => `SELECT package_id, manifest_id FROM paquetes WHERE tracking = '${tracking}'`
 
 const getUserInfo = client_id => `
   SELECT client_id, email, contact_name, client_name, phone FROM clientes WHERE client_id = '${client_id}'
 `
+
+const updatePackage = (data,package_id,manifest_id) => {
+  const query = `UPDATE paquetes SET 
+            tracking = '${data.tracking}',                
+            weight = '${data.weight}',
+            valor_miami = ${data.invoice_price ? data.invoice_price : 0},
+            costo_producto = ${data.invoice_price ? data.invoice_price : 0},
+            description = '${data.package_description}',
+            category_id = ${data.category_id ? data.category_id : 1},
+            total_a_pagar = ${data.total_a_pagar ? data.total_a_pagar : 0},
+            voucher_bill = ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},  
+            voucher_payment = ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},
+            destination_id = ${data.destination_id},            
+            supplier_id = ${data.supplier_id},
+            carrier_id = ${data.carrier_id},            
+            measurements = '${data.measurements ? data.measurements : ''}',
+            manifest_id = ${manifest_id ? manifest_id : data.manifest_id }
+            WHERE package_id = ${package_id}
+            and status = 'En Warehouse';`
+
+  return query
+}
 
 module.exports = {
   createSupplier,
@@ -143,4 +165,5 @@ module.exports = {
   findManifestById,
   findPackagesByTracking,
   getUserInfo,
+  updatePackage,
 }

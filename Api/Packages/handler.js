@@ -64,7 +64,7 @@ module.exports.readPackagesByTracking = async event => {
 
     const connection = await mysql.createConnection(dbConfig)
 
-    const [rawPackages] = await connection.execute(storage.readPackagesByTracking(), [tracking])
+    const [rawPackages] = await connection.execute(storage.readPackagesByTracking(tracking))
 
     const packages = rawPackages.map(p => ({
       guia: p.guia,
