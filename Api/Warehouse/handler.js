@@ -170,7 +170,12 @@ module.exports.createWarehouseEntry = async event => {
     if (!manifest) throw new Error('Invalid manifest Id')
 
     const [trackingExists] = await connection.execute(storage.findPackagesByTracking(body.tracking))
-    if (trackingExists.length > 0) throw new Error('The provided tracking exists already')
+
+    if (trackingExists.length > 0) {      
+      await connection.execute(storage.updatePackage(body, trackingExists[0].package_id, trackingExists[0].manifest_id))
+     
+      throw new Error('The provided tracking exists already')
+    }
 
     const [result] = await connection.execute(storage.findMaxPaqueteId())
 

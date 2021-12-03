@@ -40,7 +40,7 @@ const read = (page, type, id) => {
   return query
 }
 
-const readPackagesByTracking = () => `
+const readPackagesByTracking = (tracking) => `
   SELECT
     p.guia,
     p.supplier_id,
@@ -72,7 +72,7 @@ const readPackagesByTracking = () => `
   FROM paquetes p
   LEFT JOIN suppliers s ON s.id = p.supplier_id
   LEFT JOIN clientes c ON c.client_id = p.client_id
-  WHERE tracking = ?
+  WHERE tracking like '%${tracking}%'
 `
 
 const getTariffs = fields => {
@@ -122,7 +122,9 @@ const create = (data, newGuiaId) => {
   }
 
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
-                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva)
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, guia, tasa, total_iva,
+                voucher_bill,
+                voucher_payment)
                   VALUES ('${data.tracking}',
                   '${data.client_id}',
                   '${data.weight}',
@@ -139,7 +141,10 @@ const create = (data, newGuiaId) => {
                   '${data.pn_master.poliza ? data.pn_master.poliza : ''}',
                   '${newGuiaId ? newGuiaId : data.guia}',
                   ${data.tasa ? data.tasa : 0.0},
-                  ${data.iva ? data.iva : 0.0})`
+                  ${data.iva ? data.iva : 0.0},
+                  ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},
+                  ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null}
+                  )`
 
   return query
 }
@@ -163,6 +168,7 @@ const update = (checkPackage, data, date) => {
   }
 
   const query = `UPDATE paquetes SET weight = '${data.weight}',
+                  tracking = '${data.tracking}',
                   description = '${data.description}',
                   status = '${status}',
                   total_a_pagar = ${data.total},
@@ -183,6 +189,7 @@ const update = (checkPackage, data, date) => {
 
 const updateStatus = (data, package_id, date, status) => {
   const query = `UPDATE paquetes SET weight = '${data.weight}',
+                  tracking = '${data.tracking}',
                   description = '${data.description}', status = '${status}', total_a_pagar = ${data.total},
                   ent_date = '${status === 'Entregado' || status === 'Entregado con saldo pendiente' ? date : data.ent_date}',
                   anticipo = '${data.anticipo ? data.anticipo : '0'}',
@@ -393,6 +400,8 @@ const readGuideByMaster = master => `
   WHERE g.master = '${master}'
 `
 
+const findMaxPaqueteById = () => 'SELECT IFNULL(MAX(CONVERT(guia, SIGNED INTEGER)), 0) AS id FROM paquetes'
+
 module.exports = {
   get: read,
   post: create,
@@ -424,4 +433,5 @@ module.exports = {
   getUncompleteManifests,
   readGuideByMaster,
   readPackagesByTracking,
+  findMaxPaqueteById
 }
