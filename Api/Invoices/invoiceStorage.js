@@ -252,9 +252,20 @@ const getDocumentByClient = (id) => {
 }
 
 const getClientInfo = (id) => {
-  const query = `SELECT contact_name, client_name, email, phone, nit, main_address
-                 FROM clientes
-                 WHERE client_id = '${id}'`;
+  // const query = `SELECT contact_name, client_name, email, phone, nit, main_address
+  //                FROM clientes
+  //                WHERE client_id = '${id}'`;
+
+const query = `SELECT 
+                B.name as contact_name,
+                B.name as client_name,
+                A.email,
+                A.phone,
+                A.nit,
+                A.main_address
+            FROM clientes A
+            INNER JOIN usuarios B on A.id_usuario = B.id 
+                WHERE A.client_id = '${id}'`;
   return query
 }
 
