@@ -6,7 +6,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
     STAGE: ${self:provider.stage}
