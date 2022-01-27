@@ -16,7 +16,7 @@ const readManifest = params => {
     LEFT JOIN paquetes p ON p.manifest_id = m.manifest_id
     WHERE ${statusWhereCondition} AND ${descriptionWhereCondition}
     GROUP BY m.manifest_id
-    ORDER BY manifest_id DESC LIMIT 25
+    ORDER BY manifest_id DESC
   `
 }
 
