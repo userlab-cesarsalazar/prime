@@ -57,7 +57,7 @@ const readPackagesByTracking = (tracking) => `
     p.voucher_payment,
     c.id,
     c.client_id,
-    c.client_name,
+    u.name as client_name,
     c.email,
     c.phone,
     c.entrega,
@@ -72,6 +72,7 @@ const readPackagesByTracking = (tracking) => `
   FROM paquetes p
   LEFT JOIN suppliers s ON s.id = p.supplier_id
   LEFT JOIN clientes c ON c.client_id = p.client_id
+  INNER JOIN usuarios u ON u.id = c.id_usuario
   WHERE tracking like '%${tracking}%'
 `
 
