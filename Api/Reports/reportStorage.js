@@ -129,13 +129,15 @@ const byMasterTotal = (master, poliza) => {
   return query
 }
 
-const getInvoices = (date) => {
-  const query = `SELECT client_id,nit,num_serie_sat, num_authorization_sat,num_control,certification_date_date, total_cta, created_at, 
+const getInvoices = (date,store) => {
+  let query = `SELECT client_id,nit,num_serie_sat, num_authorization_sat,num_control,certification_date_date, total_cta, created_at, 
                   ds.name as status, pt.name as payment, d.observations, d.id as transaction_id
                   FROM documents d 
                   INNER JOIN document_status ds on d.status = ds.id
                   INNER JOIN payment_types pt on d.payment_id = pt.id 
-                  where created_at = '${date}'`
+                  where created_at = '${date}'`    
+  if(store) query += ` and store_id = ${store}`
+
   return query
 }
 

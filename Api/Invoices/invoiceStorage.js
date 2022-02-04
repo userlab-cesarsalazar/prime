@@ -188,7 +188,7 @@ const get = (params) => {
               INNER JOIN document_status ds on D.status = ds.id
               INNER JOIN stores s on D.store_id = s.id
               LEFT JOIN account_reconciliation ar on D.id = ar.document_id
-              ORDER By id DESC LIMIT 25`
+              ORDER By id DESC LIMIT 150`
   switch (params.type) {
     case 'client':
       query = `SELECT  D.*, ds.name as status_invoices, DATE_FORMAT(D.created_at, '%d-%m-%Y') AS created_at_date, s.description, ar.recorded_at, ar.status
