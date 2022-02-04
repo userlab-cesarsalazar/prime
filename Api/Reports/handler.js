@@ -187,14 +187,15 @@ module.exports.byMasterTotal = async event => {
 
 module.exports.byInvoices = async event => {
   try{
-    let date = ''    
+    let date,store = ''    
     
     if (event.queryStringParameters && event.queryStringParameters.date) {
       date = event.queryStringParameters.date
+      store = event.queryStringParameters.store
     }
     
     const connection = await mysql.createConnection(dbConfig)
-    const [result] = await connection.execute(storage.getInvoices(date))
+    const [result] = await connection.execute(storage.getInvoices(date,store))
     
     return response(200, result, connection)
   } catch (e) {
