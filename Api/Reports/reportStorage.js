@@ -136,7 +136,7 @@ const getInvoices = (date,store) => {
                   INNER JOIN document_status ds on d.status = ds.id
                   INNER JOIN payment_types pt on d.payment_id = pt.id 
                   where created_at = '${date}'`    
-  if(store) query += `and store_id = ${store}`
+  if(store) query += ` and store_id = ${store}`
 
   return query
 }
