@@ -5,7 +5,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${file(../../commons/credentials.json):stage}
   region: us-east-1
   environment:
@@ -52,7 +52,6 @@ functions:
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
-
   entries:
     handler: handler.entries
     timeout: 30
@@ -74,7 +73,6 @@ functions:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
 
   route:
     handler: handler.route
@@ -119,7 +117,6 @@ functions:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
 
   stateAccount:
     handler: handler.stateAccount

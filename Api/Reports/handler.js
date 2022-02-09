@@ -98,8 +98,8 @@ module.exports.route = async event => {
 module.exports.warehouse = async event => {
   try {
     let total = false
-    let date = '',
-      page = 0
+    
+    let date = '', page = 0
 
     if (event.queryStringParameters && event.queryStringParameters.total) {
       total = event.queryStringParameters.total
@@ -113,6 +113,7 @@ module.exports.warehouse = async event => {
     }
 
     const [totals] = await connection.execute(storage.packageInWarehouse())
+
     return response(200, totals, connection)
   } catch (e) {
     console.log(e, 'catch')
