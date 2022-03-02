@@ -14,6 +14,7 @@ AWS.config.update({ region: 'us-east-1' })
 const sns = new AWS.SNS()
 
 module.exports.read = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     let page = 0
     let type = null
@@ -31,38 +32,36 @@ module.exports.read = async (event, context) => {
       id = event.queryStringParameters.id
     }
 
-    const connection = await mysql.createConnection(dbConfig)
     const [packages] = await connection.execute(storage.get(page, type, id))
 
     return response(200, packages, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.detail = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
     console.log(event.pathParameter, 'event.pathParameter')
     const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
     if (package_id === undefined) throw 'pathParameters missing'
 
-    let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.getByid(package_id))
     return response(200, users, connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.readPackagesByTracking = async event => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const tracking = event.pathParameters && event.pathParameters.tracking
 
     if (!tracking) throw 'pathParameters missing'
-
-    const connection = await mysql.createConnection(dbConfig)
 
     const [rawPackages] = await connection.execute(storage.readPackagesByTracking(tracking))
 
@@ -105,35 +104,26 @@ module.exports.readPackagesByTracking = async event => {
 
     return response(200, packages, connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.create = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
-    let data = JSON.parse(event.body);
-    if (!data.tracking || !data.client_id || !data.weight || !data.description)
-      throw "missing_parameter.";
-    
-    data.ing_date = date;
-    
-    let connection = await mysql.createConnection(dbConfig);
-    
-    const [checkPackage] = await connection.execute(
-      storage.findByTracking(data)
-    );
+    let data = JSON.parse(event.body)
+    if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
+
+    data.ing_date = date
+
+    const [checkPackage] = await connection.execute(storage.findByTracking(data))
     if (checkPackage.length > 0) {
-      console.log("update", data);
+      console.log('update', data)
       //update
-      const [update] = await connection.execute(
-        storage.put(checkPackage[0], data, date, null)
-      );
-      if (update)
-        await connection.execute(
-          storage.postDetail(data, checkPackage[0].package_id, date)
-        );
+      const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
+      if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
     } else {
-      console.log("create", data);
+      console.log('create', data)
       //create
 
       /*  added by ledr
@@ -141,53 +131,52 @@ module.exports.create = async (event, context) => {
       */
       const [result] = await connection.execute(storage.findMaxPaqueteById())
       const newGuiaId = parseInt(result[0].id) + 1
-      const [save] = await connection.execute(storage.post(data,newGuiaId));
+      const [save] = await connection.execute(storage.post(data, newGuiaId))
 
-      if (save)
-        await connection.execute(storage.postDetail(data, save.insertId, date));
+      if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
     }
-    
-    const [userData] = await connection.execute(
-      storage.getUserInfo(data.client_id)
-    );
-    
-    if (!data.status || data.status !== "Registrado") {
-      let template = prepareToSend(data, userData);
-      const validate = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+    const [userData] = await connection.execute(storage.getUserInfo(data.client_id))
+
+    if (!data.status || data.status !== 'Registrado') {
+      let template = prepareToSend(data, userData)
+      const validate =
+        /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       if (validate.test(String(userData[0].email).toLowerCase())) {
         //await notifyEmail(AWS, template)
       }
-      
+
       let payload = {
         profile: userData,
         data: data,
-      };
+      }
       const params = {
         Message: JSON.stringify(payload),
-        TopicArn: `arn:aws:sns:us-east-1:${process.env["ACCOUNT_ID"]}:sms-${process.env["STAGE"]}-tigo`,
-      };
-      
+        TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:sms-${process.env['STAGE']}-tigo`,
+      }
+
       await new Promise((resolve, reject) => {
-        sns.publish(params, (error) => {
+        sns.publish(params, error => {
           if (error) {
-            console.log("SNS error ", error);
-            reject(error);
+            console.log('SNS error ', error)
+            reject(error)
           } else {
-            console.log("added");
-            resolve("added");
+            console.log('added')
+            resolve('added')
           }
-        });
-      });
+        })
+      })
     }
-    
-    return response(200, data, connection);
+
+    return response(200, data, connection)
   } catch (e) {
-    console.log(e);
-    return response(400, e, null);
+    console.log(e)
+    return response(400, e, connection)
   }
-};
+}
 
 module.exports.update = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
@@ -199,8 +188,6 @@ module.exports.update = async (event, context) => {
     let data = JSON.parse(event.body)
 
     if (!data) throw 'no data to update'
-
-    const connection = await mysql.createConnection(dbConfig)
 
     /* Status
      * En Transito
@@ -224,27 +211,27 @@ module.exports.update = async (event, context) => {
     return response(200, data, connection)
   } catch (e) {
     console.log(e, 't')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.delete = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
     if (package_id === undefined) throw 'pathParameters missing'
 
-    const connection = await mysql.createConnection(dbConfig)
-
     const update = await connection.execute(storage.delete(package_id))
 
     return response(200, update, connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.updateStatus = async (event, context) => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     let data = {}
 
@@ -256,21 +243,19 @@ module.exports.updateStatus = async (event, context) => {
 
     const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
 
-    const connection = await mysql.createConnection(dbConfig)
     const [packages] = await connection.execute(storage.postDetail(data, package_id, date))
 
     return response(200, packages, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.transfer = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
     let data = JSON.parse(event.body)
-
-    let connection = await mysql.createConnection(dbConfig)
 
     const [checkPackage] = await connection.execute(storage.transfer(data))
 
@@ -279,14 +264,14 @@ module.exports.transfer = async (event, context) => {
     return response(200, checkPackage, connection)
   } catch (e) {
     console.log(e, 'error')
-    return response(200, e, null)
+    return response(200, e, connection)
   }
 }
 
 module.exports.transferClient = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
     let data = JSON.parse(event.body)
-    let connection = await mysql.createConnection(dbConfig)
 
     const [checkClients] = await connection.execute(storage.checkClient(data.client_id.toUpperCase()))
 
@@ -309,7 +294,7 @@ module.exports.transferClient = async (event, context) => {
     return response(200, checkClients, connection)
   } catch (e) {
     console.log(e, 'error')
-    return response(400, e.message, null)
+    return response(400, e.message, connection)
   }
 }
 
@@ -427,29 +412,29 @@ module.exports.sendSMSTigo = async event => {
 
     //subir codigo de los mensajes.
     if (!params) throw 'no_params'
-    
+
     let SMS = ''
 
-      switch (params.data.client_id.charAt(0)) {
-        case 'P':
-          SMS = params.warehouse ?
-          `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}. Para consultas contáctanos a 2376-4699 / 3237-0023.`
+    switch (params.data.client_id.charAt(0)) {
+      case 'P':
+        SMS = params.warehouse
+          ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}. Para consultas contáctanos a 2376-4699 / 3237-0023.`
           : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total} esta listo para entrega. Contáctanos a 2376-4699 / 3237-0023`
-          break
-        case 'T':
-          SMS = params.warehouse ? 
-          `TRAESTODO, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 4154-4275`
-          :`TRAESTODO, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 4154-4275`
-          break
-        default:
-          SMS = params.warehouse ? 
-          `Rapidito Express, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
-          :`Rapidito Express, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 5803-2545`
-      }
-    
-      if (SMS.length > 160){  
-        SMS = SMS.slice(0,160)
-      }
+        break
+      case 'T':
+        SMS = params.warehouse
+          ? `TRAESTODO, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 4154-4275`
+          : `TRAESTODO, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 4154-4275`
+        break
+      default:
+        SMS = params.warehouse
+          ? `Rapidito Express, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
+          : `Rapidito Express, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 5803-2545`
+    }
+
+    if (SMS.length > 160) {
+      SMS = SMS.slice(0, 160)
+    }
 
     const phone = `502${params.profile[0].phone}`
 
@@ -496,13 +481,13 @@ module.exports.sesTopic = async (event, context) => {
 }
 
 module.exports.guides = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
     let data = JSON.parse(event.body)
     if (!data.master || !data.poliza) throw 'missing_parameter'
 
     data.date_created = date
 
-    let connection = await mysql.createConnection(dbConfig)
     //status [ACTIVE,CLOSED]
     const [checkCuide] = await connection.execute(storage.checkGuide(data))
     console.log(checkCuide, 'checkCuide')
@@ -514,35 +499,36 @@ module.exports.guides = async (event, context) => {
     return response(200, data, connection)
   } catch (e) {
     console.log(e)
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.getGuides = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
-    let connection = await mysql.createConnection(dbConfig)
     const [guides] = await connection.execute(storage.getGuides())
 
     return response(200, guides, connection)
   } catch (e) {
     console.log(e)
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.getGuidesOpen = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
-    let connection = await mysql.createConnection(dbConfig)
     const [guides] = await connection.execute(storage.getGuidesOpens())
 
     return response(200, guides, connection)
   } catch (e) {
     console.log(e)
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.closeGuides = async (event, context) => {
+  let connection = await mysql.createConnection(dbConfig)
   try {
     console.log(event.queryStringParameters, 'queryStringParameters')
     const data = {
@@ -554,14 +540,13 @@ module.exports.closeGuides = async (event, context) => {
 
     const date_closed = date
 
-    let connection = await mysql.createConnection(dbConfig)
     //status [ACTIVE,CLOSED]
     const [checkCuide] = await connection.execute(storage.closeGuide(data, date_closed))
 
     return response(200, checkCuide, connection)
   } catch (e) {
     console.log(e)
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
@@ -581,6 +566,7 @@ module.exports.getPackagesByManifestId = async event => {
 }
 
 module.exports.packagesBulkUpdate = async event => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     /**
      * @typedef {Object} PackagesBulkUpdate
@@ -640,8 +626,6 @@ module.exports.packagesBulkUpdate = async event => {
       }
     }, {})
 
-    const connection = await mysql.createConnection(dbConfig)
-
     const [updateInfo] = await connection.execute(storage.packagesBulkUpdate(updateValues))
     console.log('Update Packages', updateValues)
     console.log('Update DB Info', updateInfo)
@@ -673,26 +657,26 @@ module.exports.packagesBulkUpdate = async event => {
     return response(200, { data: packagesIds }, connection)
   } catch (e) {
     console.log(e, 't')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.readTariffs = async event => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const params = event.queryStringParameters
-
-    const connection = await mysql.createConnection(dbConfig)
 
     const [tariffs] = await connection.execute(storage.getTariffs(params))
 
     return response(200, tariffs, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.updateTariff = async event => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
 
@@ -702,30 +686,27 @@ module.exports.updateTariff = async event => {
 
     if (!data || !data.tariff_code) throw new Error('tariff_code missing')
 
-    const connection = await mysql.createConnection(dbConfig)
-
     await connection.execute(storage.updatePackageTariff(data.tariff_code, package_id))
 
     return response(200, { package_id, tariff_code: data.tariff_code }, connection)
   } catch (e) {
     console.log(e, 't')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.readGuide = async event => {
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const master = event.pathParameters && event.pathParameters.master ? event.pathParameters.master : undefined
 
     if (master === undefined) throw new Error('master missing')
-
-    const connection = await mysql.createConnection(dbConfig)
 
     const [guides] = await connection.execute(storage.readGuideByMaster(master))
 
     return response(200, guides, connection)
   } catch (e) {
     console.log(e, 'catch')
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }

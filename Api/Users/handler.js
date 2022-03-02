@@ -52,33 +52,33 @@ module.exports.read = async (event, context) => {
   if (event.queryStringParameters && event.queryStringParameters.phone) {
     params.phone = event.queryStringParameters.phone
   }
-
+  let connection = await mysql.createConnection(dbConfig)
   try {
-    let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.get(page, params))
     return response(200, users, connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.detail = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  let connection = await mysql.createConnection(dbConfig)
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
     if (user_id === undefined) throw 'pathParameters missing.'
 
-    let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.getByid(user_id))
     return response(200, users[0], connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.create = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  const connection = await mysql.createConnection(dbConfig)
   try {
     let data = JSON.parse(event.body)
 
@@ -86,7 +86,6 @@ module.exports.create = async (event, context) => {
       throw 'missing parameters'
     }
 
-    const connection = await mysql.createConnection(dbConfig)
     let obj = serializeData(data, false)
     const save = await connection.execute(storage.post(obj))
     //save the initial
@@ -97,7 +96,7 @@ module.exports.create = async (event, context) => {
     return response(200, data, connection)
   } catch (e) {
     console.log(e)
-    return response(400, e.message ? e.message : e, null)
+    return response(400, e.message ? e.message : e, connection)
   }
 }
 
@@ -126,6 +125,7 @@ module.exports.update = async (event, context) => {
 
 module.exports.delete = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const user_id = event.pathParameters && event.pathParameters.user_id ? JSON.parse(event.pathParameters.user_id) : undefined
 
@@ -133,18 +133,17 @@ module.exports.delete = async (event, context) => {
 
     if (user_id === undefined) throw 'pathParameters missing'
 
-    const connection = await mysql.createConnection(dbConfig)
-
     const update = await connection.execute(storage.delete(user_id))
 
     return response(200, update, connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
 module.exports.search = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  const connection = await mysql.createConnection(dbConfig)
   try {
     let str = '',
       filter = ''
@@ -158,13 +157,11 @@ module.exports.search = async (event, context) => {
 
     if (str === undefined) throw 'pathParameters missing'
 
-    const connection = await mysql.createConnection(dbConfig)
-
     const update = await connection.execute(storage.findByStr(str, filter))
 
     return response(200, update[0], connection)
   } catch (e) {
-    return response(400, e, null)
+    return response(400, e, connection)
   }
 }
 
@@ -177,7 +174,7 @@ module.exports.migration = async (event, context) => {
     // authenticate the user with your existing user directory service
     const [users] = await connection.execute(sql)
     console.log(users[0])
-    connection.end()
+    await connection.end()
     if (users[0]) {
       event.response.userAttributes = {
         email: users[0].email,
@@ -198,6 +195,7 @@ module.exports.migration = async (event, context) => {
     // Lookup the user in your existing user directory service
     const [users] = await connection.execute(sql)
     if (users[0]) {
+      await connection.end()
       event.response.userAttributes = {
         email: users[0].email,
         // required to enable password-reset code to be sent to user
@@ -218,6 +216,7 @@ module.exports.migration = async (event, context) => {
 
 module.exports.profile = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const token = event.headers.Authorization
 
@@ -226,14 +225,12 @@ module.exports.profile = async (event, context) => {
     const decode = jwt_decode(token)
     console.log(decode.email, 'decode')
 
-    const connection = await mysql.createConnection(dbConfig)
-
     let [profile] = await connection.execute(storage.getProfile(decode.email))
 
-    return response(200, profile, null)
+    return response(200, profile, connection)
   } catch (Error) {
     console.log(Error, 'error')
-    return response(400, { error: Error }, null)
+    return response(400, { error: Error }, connection)
   }
 }
 
@@ -249,6 +246,7 @@ module.exports.profileTest = async (event, context) => {
 
 module.exports.getPackagesUser = async (event, context) => {
   if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  const connection = await mysql.createConnection(dbConfig)
   try {
     const token = event.headers.Authorization
 
@@ -256,7 +254,6 @@ module.exports.getPackagesUser = async (event, context) => {
 
     const decode = jwt_decode(token)
 
-    const connection = await mysql.createConnection(dbConfig)
     let user_id = ''
     if (decode.profile === 'cliente') {
       let [user] = await connection.execute(storage.getProfile(decode.email))
@@ -274,10 +271,10 @@ module.exports.getPackagesUser = async (event, context) => {
     output.profile = profile[0]
     output.packages = packages
 
-    return response(200, output, null)
+    return response(200, output, connection)
   } catch (Error) {
     console.log(Error, 'ee')
-    return response(400, { error: Error }, null)
+    return response(400, { error: Error }, connection)
   }
 }
 module.exports.postConfirmation = async (event, context) => {
@@ -301,7 +298,7 @@ module.exports.postConfirmation = async (event, context) => {
                   VALUES ('Entrega en Prime','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}','${client}' )`
 
     await connection.execute(query)
-
+    await connection.end()
     await cognitoSetGroup(event.request.userAttributes.name, event.request.userAttributes.email, 'cliente')
 
     return event
@@ -377,6 +374,7 @@ const serializeData = (data, update) => {
 const generateID = async connection => {
   try {
     let [client_id] = await connection.execute(storage.findMaxId())
+
     //save the initial
     console.log(client_id, 'client_id')
     let initial = client_id[0].client_id[0]
