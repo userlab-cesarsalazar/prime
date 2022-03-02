@@ -5,7 +5,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${file(../../commons/credentials.json):stage}
   region: us-east-1
   deploymentBucket:

@@ -6,7 +6,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${file(../../commons/credentials.json):stage}
   region: us-east-1
   environment:
@@ -27,7 +27,6 @@ package:
   exclude:
     - node_modules/**
 
-
 functions:
   usersGet:
     warmup: true
@@ -38,9 +37,9 @@ functions:
           path: users
           method: get
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
@@ -53,134 +52,132 @@ functions:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersCreate:
-      warmup: true
-      handler: handler.create
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.create
+    timeout: 30
+    events:
       - http:
           path: users
           method: post
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-           authorizer:
-             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+            authorizer:
+              arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersUpdate:
-      warmup: true
-      handler: handler.update
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.update
+    timeout: 30
+    events:
       - http:
           path: users/{user_id}
           method: put
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-           authorizer:
-             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+            authorizer:
+              arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersDelete:
-      warmup: true
-      handler: handler.delete
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.delete
+    timeout: 30
+    events:
       - http:
           path: users/{user_id}
           method: delete
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-           authorizer:
-             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
+            authorizer:
+              arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersDetail:
-      warmup: true
-      handler: handler.detail
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.detail
+    timeout: 30
+    events:
       - http:
           path: users/{user_id}
           method: get
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-           authorizer:
-             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+            authorizer:
+              arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersPackages:
-      warmup: true
-      handler: handler.getPackagesUser
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.getPackagesUser
+    timeout: 30
+    events:
       - http:
           path: users/{user_id}/packages
           method: get
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
               - X-Amz-User-Agent
-           authorizer:
-             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
+            authorizer:
+              arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersProfile:
-      warmup: true
-      handler: handler.profile
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.profile
+    timeout: 30
+    events:
       - http:
           path: users/profile
           method: get
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
@@ -189,21 +186,21 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   usersSearch:
-      warmup: true
-      handler: handler.search
-      timeout: 30
-      events:
+    warmup: true
+    handler: handler.search
+    timeout: 30
+    events:
       - http:
           path: search
           method: get
           cors:
-           origin: '*'
-           allowCredentials: true
-           headers:
+            origin: '*'
+            allowCredentials: true
+            headers:
               - Content-Type
               - X-Amz-Date
               - Authorization
@@ -212,9 +209,8 @@ functions:
               - X-Amz-User-Agent
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
-      layers:
-        - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
+    layers:
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   UsersMigration:
     warmup: true
@@ -231,7 +227,6 @@ functions:
           method: get
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
 
 Resources:
   GatewayResponseDefault4XX:
@@ -252,5 +247,3 @@ Resources:
       ResponseType: DEFAULT_5XX
       RestApiId:
         Ref: 'ApiGatewayRestApi'
-
-

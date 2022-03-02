@@ -9,12 +9,10 @@ const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response, wakeUpLambda } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./userStorage')
 
-const date = moment()
-  .tz('America/Guatemala')
-  .format('YYYY-MM-DD hh:mm:ss')
+const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
 
 module.exports.read = async (event, context) => {
-  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me' }, null)
+  if (wakeUpLambda(event)) return await response(200, { message: 'just warnUp me.' }, null)
   let page = 0
   let params = {
     name: '',
@@ -56,7 +54,6 @@ module.exports.read = async (event, context) => {
   }
 
   try {
-    
     let connection = await mysql.createConnection(dbConfig)
     const [users] = await connection.execute(storage.get(page, params))
     return response(200, users, connection)
@@ -242,9 +239,8 @@ module.exports.profile = async (event, context) => {
 
 module.exports.profileTest = async (event, context) => {
   try {
-    
     console.log(event)
-    return response(200, "hola  undo", null)
+    return response(200, 'hola  undo', null)
   } catch (Error) {
     console.log(Error, 'error')
     return response(400, { error: Error }, null)
@@ -257,16 +253,16 @@ module.exports.getPackagesUser = async (event, context) => {
     const token = event.headers.Authorization
 
     if (!token) throw 'No token provider'
-    
+
     const decode = jwt_decode(token)
-    
+
     const connection = await mysql.createConnection(dbConfig)
     let user_id = ''
     if (decode.profile === 'cliente') {
       let [user] = await connection.execute(storage.getProfile(decode.email))
       user_id = user[0].client_id
     } else {
-      user_id = event.pathParameters && event.pathParameters.user_id ?  event.pathParameters.user_id  : undefined
+      user_id = event.pathParameters && event.pathParameters.user_id ? event.pathParameters.user_id : undefined
     }
 
     if (user_id === undefined) throw 'pathParameters missing'
@@ -295,17 +291,16 @@ module.exports.postConfirmation = async (event, context) => {
 
     console.log(sql, 'sql')
     const connection = await mysql.createConnection(dbConfig)
-  
+
     const client = await generateID(connection)
-    
-    console.log(client,'client')
+
+    console.log(client, 'client')
     const [users] = await connection.execute(sql)
-  
 
     const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email, client_id )
                   VALUES ('Entrega en Prime','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}','${client}' )`
 
-     await connection.execute(query)
+    await connection.execute(query)
 
     await cognitoSetGroup(event.request.userAttributes.name, event.request.userAttributes.email, 'cliente')
 
@@ -316,7 +311,6 @@ module.exports.postConfirmation = async (event, context) => {
 }
 
 const cognitoSetGroup = (name, email, type) => {
-
   AWS.config.region = 'us-east-1'
   AWS.config.update({
     credentials: new AWS.CognitoIdentityCredentials({ IdentityPoolId: process.env['IDENTITY'] }),
@@ -346,7 +340,7 @@ const cognitoSetGroup = (name, email, type) => {
   }
 
   return new Promise((resolve, reject) => {
-    cognitoidentityserviceprovider.adminUpdateUserAttributes(params, function(err, data) {
+    cognitoidentityserviceprovider.adminUpdateUserAttributes(params, function (err, data) {
       if (err) {
         console.log(err, 'fn')
         reject(err)
@@ -374,31 +368,30 @@ const serializeData = (data, update) => {
   dataToSave.message_user = data.message_user ? data.message_user : '' // observations
   dataToSave.cuota = data.cuota ? data.cuota : 60
   dataToSave.date_created = date
-  dataToSave.flete = data.flete ? data.flete : 25.00
-  dataToSave.desaduanaje = data.desaduanaje ? data.desaduanaje : 30.00
-  
+  dataToSave.flete = data.flete ? data.flete : 25.0
+  dataToSave.desaduanaje = data.desaduanaje ? data.desaduanaje : 30.0
 
   return dataToSave
 }
 
-const generateID = async (connection) => {
+const generateID = async connection => {
   try {
     let [client_id] = await connection.execute(storage.findMaxId())
     //save the initial
-    console.log(client_id,'client_id')
+    console.log(client_id, 'client_id')
     let initial = client_id[0].client_id[0]
-    let secondPart = client_id[0].client_id.replace(/[A-Z]/g,'').length
-    let maximum = parseInt(client_id[0].client_id.replace(/[A-Z]/g,'')) + 1
+    let secondPart = client_id[0].client_id.replace(/[A-Z]/g, '').length
+    let maximum = parseInt(client_id[0].client_id.replace(/[A-Z]/g, '')) + 1
     let partNumeric = maximum.toString().length
     partNumeric = secondPart - partNumeric
     let _client = ''
     let _var = ''
-    for (let i = 0 ; i < partNumeric; i++ ){
+    for (let i = 0; i < partNumeric; i++) {
       _var += `0`
       _client = `${initial}${_var}${maximum}`
     }
     return _client
-  }catch (e) {
-    console.log(e,'ee')
+  } catch (e) {
+    console.log(e, 'ee')
   }
 }

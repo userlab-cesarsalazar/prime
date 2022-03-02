@@ -5,7 +5,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   stage: ${opt:stage, 'pn'}
   region: us-east-1
   environment:
@@ -31,8 +31,7 @@ provider:
         - lambda:InvokeAsync
         - ses:SendEmail
         - SNS:Publish
-      Resource: "*"
-
+      Resource: '*'
 
 package:
   include:
@@ -49,7 +48,7 @@ functions:
           path: invoices
           method: post
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -61,7 +60,7 @@ functions:
           authorizer:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
-       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
+      - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
 
   getInvoices:
     handler: handler.documents
@@ -71,7 +70,7 @@ functions:
           path: invoices
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -93,7 +92,7 @@ functions:
           path: invoices/{id}
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -115,7 +114,7 @@ functions:
           path: invoices/print/{id}
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -137,7 +136,7 @@ functions:
           path: invoices/client/{id}
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -159,7 +158,7 @@ functions:
           path: invoices/{id}/cancel
           method: put
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -202,7 +201,7 @@ functions:
           path: payments
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -224,7 +223,7 @@ functions:
           path: reconciliation/{id}
           method: put
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -246,7 +245,7 @@ functions:
           path: reconciliation
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -268,7 +267,7 @@ functions:
           path: stores
           method: get
           cors:
-            origin: "*"
+            origin: '*'
             allowCredentials: true
             headers:
               - Content-Type
@@ -281,4 +280,3 @@ functions:
             arn: ${file(../../commons/credentials.json):${self:provider.stage}.pool_arn}
     layers:
       - arn:${file(../../commons/credentials.json):${self:provider.stage}.layer}
-
