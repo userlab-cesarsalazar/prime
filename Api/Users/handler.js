@@ -295,7 +295,7 @@ module.exports.postConfirmation = async (event, context) => {
     const [users] = await connection.execute(sql)
 
     const query = `INSERT INTO clientes (entrega, phone, nit, main_address, message_user, cuota, date_created, id_usuario, client_name, email, client_id )
-                  VALUES ('Entrega en Prime','00000','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}','${client}' )`
+                  VALUES ('Entrega en Prime','','','','',65,'${date}',${users.insertId}, '${event.request.userAttributes.name}','${event.request.userAttributes.email}','${client}' )`
 
     await connection.execute(query)
     await connection.end()
