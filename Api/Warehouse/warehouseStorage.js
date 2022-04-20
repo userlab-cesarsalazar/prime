@@ -145,7 +145,7 @@ const updatePackage = (data,package_id,manifest_id) => {
             measurements = '${data.measurements ? data.measurements : ''}',
             manifest_id = ${manifest_id ? manifest_id : data.manifest_id }
             WHERE package_id = ${package_id}
-            and status = 'En Warehouse';`
+            and status = 'En Warehouse' or status = 'Registrado';`
 
   return query
 }

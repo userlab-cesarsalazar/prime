@@ -117,9 +117,13 @@ const create = (data, newGuiaId) => {
   if (data.status) {
     status = data.status
   }
-
+  
   if (data.entrega === 'Entrega a Domicilio') {
     status = 'Listo para Entrega a Domicilio'
+  }
+
+  if (data.status === 'Registrado'){
+    status = 'Registrado'
   }
 
   const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
