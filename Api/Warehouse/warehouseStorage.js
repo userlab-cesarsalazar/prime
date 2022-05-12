@@ -146,7 +146,7 @@ const updatePackage = (data,package_id,manifest_id) => {
             manifest_id = ${manifest_id ? manifest_id : data.manifest_id },
             status = 'En Warehouse'
             WHERE package_id = ${package_id}
-            and status = 'En Warehouse' or status = 'Registrado';`
+            AND status IN ('En Warehouse','Registrado','Listo para Entrega a Domicilio');`
 
   return query
 }
