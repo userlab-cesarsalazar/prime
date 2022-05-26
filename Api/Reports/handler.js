@@ -70,6 +70,35 @@ module.exports.entries = async event => {
   }
 }
 
+module.exports.entriesOnHold = async event => {
+  try {
+    let total = false
+    let date = '',
+      page = 0
+
+    if (event.queryStringParameters && event.queryStringParameters.total) {
+      total = event.queryStringParameters.total
+    }
+
+    if (event.queryStringParameters && event.queryStringParameters.date) {
+      date = event.queryStringParameters.date
+    }
+
+    const connection = await mysql.createConnection(dbConfig)
+
+    if (total) {
+      const [totals] = await connection.execute(storage.entryTicketPackageTotal(date))
+      return response(200, totals, connection)
+    }
+
+    const [totals] = await connection.execute(storage.entryTicketPackageDetail(date, page))
+    return response(200, totals, connection)
+  } catch (e) {
+    console.log(e, 'catch')
+    return response(400, e, null)
+  }
+}
+
 module.exports.route = async event => {
   try {
     let total = false

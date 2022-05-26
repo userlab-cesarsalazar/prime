@@ -34,7 +34,7 @@ const entryPackageDetail = date => {
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
                 FROM  paquetes A
                 LEFT JOIN clientes C on A.client_id = C.client_id
-                WHERE ing_date = '${date}' AND status != 'Registrado'
+                WHERE ing_date = '${date}' AND status NOT IN ('Registrado' ,'On Hold')
                 ORDER BY A.package_id ASC ;`;
   return query;
 };
@@ -42,7 +42,23 @@ const entryPackageDetail = date => {
 const entryPackageTotal = date => {
   const query = `SELECT count(package_id) as tota_paquetes, sum(weight) as total_libras
                 FROM paquetes
-                WHERE ing_date = '${date}' AND status != 'Registrado'`;
+                WHERE ing_date = '${date}' AND status NOT IN ('Registrado' ,'On Hold')`;
+  return query;
+};
+
+const entryTicketPackageTotal = date => {
+  const query = `SELECT count(package_id) as tota_paquetes, sum(weight) as total_libras
+                FROM paquetes
+                WHERE ing_date = '${date}' AND status = 'On Hold'`;
+  return query;
+};
+
+const entryTicketPackageDetail = date => {
+  const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
+                FROM  paquetes A
+                LEFT JOIN clientes C on A.client_id = C.client_id
+                WHERE ing_date = '${date}' AND status = 'On Hold'
+                ORDER BY A.package_id ASC ;`;
   return query;
 };
 
@@ -179,5 +195,7 @@ module.exports = {
   byMasterTotal,
   getInvoices,
   getConciliation,
-  getGuiaDetail
+  getGuiaDetail,
+  entryTicketPackageTotal,
+  entryTicketPackageDetail
 };

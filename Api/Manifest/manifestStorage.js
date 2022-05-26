@@ -29,7 +29,9 @@ const getPackagesByManifestId = params => {
   const polizaWhereCondition = params.polizaFilter ? `AND A.poliza LIKE '%${params.polizaFilter}%'` : ''
   const noNullWhereCondition =
     String(params.noNullMaster) === '0'
-      ? 'AND (A.master = "" OR A.master IS NULL) AND (A.poliza = "" OR A.poliza IS NULL) ORDER BY guia ASC'
+      ? `AND (A.master = "" OR A.master IS NULL OR A.status = "On Hold") 
+         AND (A.poliza = "" OR A.poliza IS NULL OR A.status = "On Hold") 
+         ORDER BY guia ASC`
       : String(params.noNullMaster) === '1'
       ? 'AND (A.master <> "" OR A.master IS NOT NULL) AND (A.poliza <> "" OR A.poliza IS NOT NULL) ORDER BY guia ASC'
       : 'ORDER BY guia ASC'
