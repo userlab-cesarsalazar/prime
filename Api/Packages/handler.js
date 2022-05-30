@@ -419,7 +419,7 @@ module.exports.sendSMSTigo = async event => {
     if(action === 'AdminChargeReport'){
       SMS = 'Se generó ingreso de carga de paquetería en el sistema.'
     }else if(params.data.status === 'On Hold'){
-      SMS = `NOW EXPRESS su paquete con tracking ${params.data.tracking} a pasado a TICKET, por lo que le solicitamos se comunique a nuestro call center.`
+      SMS = `NOW EXPRESS su paquete con tracking ${params.data.tracking} a pasado a TICKET, por lo que le solicitamos se comunique a nuestro call center 2376-4699 / 5803-2545.`
     }else{
       switch (params.data.client_id.charAt(0)) {
         case 'P':
@@ -443,7 +443,8 @@ module.exports.sendSMSTigo = async event => {
       SMS = SMS.slice(0, 160)
     }
 
-    const phone = `502${params.profile[0].phone}`
+    let phoneFromRequest = params.profile[0].phone
+    const phone = phoneFromRequest.includes('+1') ? phoneFromRequest : `502${params.profile[0].phone}`
 
     var options = {
       method: 'POST',
@@ -665,7 +666,13 @@ module.exports.packagesBulkUpdate = async event => {
       //report SMS
       await Promise.all(sendSMSPromises)
 
-      let userData = [{contact_name: "AdminChargeReport",client_name: "AdminChargeReport",phone: '35757882'},{contact_name: "AdminChargeReport",client_name: "AdminChargeReport",phone: '58030618'}]
+      let userData = [
+        {contact_name: "AdminChargeReport",phone: '35757882'},
+        {contact_name: "AdminChargeReport",phone: '54586747'},
+        {contact_name: "AdminChargeReport",phone: '32871813'},
+        {contact_name: "AdminChargeReport",phone: '52016022'},
+        {contact_name: "AdminChargeReport",phone: '+16095919448'}
+      ]
       const sendSMSPromisesReport = userData.map(data => {
         const params = getSendSMSviaSNSParams(data)     
         console.log('SMS Report params',params)       

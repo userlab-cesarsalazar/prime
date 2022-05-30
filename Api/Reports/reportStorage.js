@@ -46,19 +46,45 @@ const entryPackageTotal = date => {
   return query;
 };
 
-const entryTicketPackageTotal = date => {
+const entryTicketPackageTotal = (startDate,endDate) => {  
+
+  let where = ''
+  
+  if(startDate === 'null' && endDate === 'null'){
+    where = `WHERE status = 'On Hold' `
+  }else if (startDate !== 'null' && endDate === 'null'){
+    where = `WHERE ing_date = '${startDate}' AND status = 'On Hold' `
+  }else if(startDate === 'null' && endDate !== 'null'){
+    where = `WHERE ing_date = '${endDate}' AND status = 'On Hold' `
+  }else{
+    where = `WHERE str_to_date(ing_date, '%Y-%m-%d') between '${startDate}' and '${endDate}' AND status = 'On Hold' `
+  }
+  
   const query = `SELECT count(package_id) as tota_paquetes, sum(weight) as total_libras
                 FROM paquetes
-                WHERE ing_date = '${date}' AND status = 'On Hold'`;
+                ${where};`;
   return query;
 };
 
-const entryTicketPackageDetail = date => {
+const entryTicketPackageDetail = (startDate,endDate) => {
+  let where = ''
+  
+  if(startDate === 'null' && endDate === 'null'){
+    where = `WHERE status = 'On Hold' `
+  }else if (startDate !== 'null' && endDate === 'null'){
+    where = `WHERE ing_date = '${startDate}' AND status = 'On Hold' `
+  }else if(startDate === 'null' && endDate !== 'null'){
+    where = `WHERE ing_date = '${endDate}' AND status = 'On Hold' `
+  }else{
+    where = `WHERE str_to_date(ing_date, '%Y-%m-%d') between '${startDate}' and '${endDate}' AND status = 'On Hold' `
+  }
+
   const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
                 FROM  paquetes A
                 LEFT JOIN clientes C on A.client_id = C.client_id
-                WHERE ing_date = '${date}' AND status = 'On Hold'
+                ${where}
                 ORDER BY A.package_id ASC ;`;
+                console.log("entryTicketPackageDetail ",query)
   return query;
 };
 

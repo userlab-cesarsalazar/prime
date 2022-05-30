@@ -73,25 +73,29 @@ module.exports.entries = async event => {
 module.exports.entriesOnHold = async event => {
   try {
     let total = false
-    let date = '',
+    let startDate = '',endDate = '',
       page = 0
 
     if (event.queryStringParameters && event.queryStringParameters.total) {
       total = event.queryStringParameters.total
     }
 
-    if (event.queryStringParameters && event.queryStringParameters.date) {
-      date = event.queryStringParameters.date
+    if (event.queryStringParameters && event.queryStringParameters.startDate) {
+      startDate = event.queryStringParameters.startDate
+    }
+
+    if (event.queryStringParameters && event.queryStringParameters.endDate) {
+      endDate = event.queryStringParameters.endDate
     }
 
     const connection = await mysql.createConnection(dbConfig)
 
     if (total) {
-      const [totals] = await connection.execute(storage.entryTicketPackageTotal(date))
+      const [totals] = await connection.execute(storage.entryTicketPackageTotal(startDate,endDate))
       return response(200, totals, connection)
     }
 
-    const [totals] = await connection.execute(storage.entryTicketPackageDetail(date, page))
+    const [totals] = await connection.execute(storage.entryTicketPackageDetail(startDate,endDate, page))
     return response(200, totals, connection)
   } catch (e) {
     console.log(e, 'catch')
