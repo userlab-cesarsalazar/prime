@@ -79,7 +79,7 @@ const entryTicketPackageDetail = (startDate,endDate) => {
     where = `WHERE str_to_date(ing_date, '%Y-%m-%d') between '${startDate}' and '${endDate}' AND status = 'On Hold' `
   }
 
-  const query = `SELECT A.package_id, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
+  const query = `SELECT A.package_id, A.guia, A.client_id, A.tracking, A.total_a_pagar, A.description, C.contact_name, A.ing_date, A.ent_date, A.status, A.weight
                 FROM  paquetes A
                 LEFT JOIN clientes C on A.client_id = C.client_id
                 ${where}
