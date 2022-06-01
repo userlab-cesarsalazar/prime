@@ -395,8 +395,16 @@ const getUncompleteManifests = manifestIds => `
   FROM paquetes
   WHERE
     manifest_id IN (${manifestIds.join(', ')})
-    AND (master = "" OR master IS NULL)
-    AND (poliza = "" OR poliza IS NULL)
+    AND (master = "" OR master IS NULL OR status = "On Hold")
+    AND (poliza = "" OR poliza IS NULL OR status = "On Hold")    
+`
+
+const getUncompleteManifestsByHold = manifestIds => `
+  SELECT manifest_id
+  FROM paquetes
+  WHERE
+    manifest_id IN (${manifestIds.join(', ')})
+    AND status = "On Hold"    
 `
 
 const readGuideByMaster = master => `
@@ -438,5 +446,6 @@ module.exports = {
   getUncompleteManifests,
   readGuideByMaster,
   readPackagesByTracking,
-  findMaxPaqueteById
+  findMaxPaqueteById,
+  getUncompleteManifestsByHold
 }

@@ -414,29 +414,37 @@ module.exports.sendSMSTigo = async event => {
     if (!params) throw 'no_params'
 
     let SMS = ''
+    const action = params.profile[0].contact_name
 
-    switch (params.data.client_id.charAt(0)) {
-      case 'P':
-        SMS = params.warehouse
-          ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}. Para consultas contáctanos a 2376-4699 / 5803-2545.`
-          : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total} esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
-        break
-      case 'T':
-        SMS = params.warehouse
-          ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 2376-4699 / 5803-2545`
-          : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
-        break
-      default:
-        SMS = params.warehouse
-          ? `NOW EXPRESS, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
-          : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
+    if(action === 'AdminChargeReport'){
+      SMS = 'Se generó ingreso de carga de paquetería en el sistema.'
+    }else if(params.data.status === 'On Hold'){
+      SMS = `NOW EXPRESS su paquete con tracking ${params.data.tracking} a pasado a TICKET, por lo que le solicitamos se comunique a nuestro call center 2376-4699 / 5803-2545.`
+    }else{
+      switch (params.data.client_id.charAt(0)) {
+        case 'P':
+          SMS = params.warehouse
+            ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}. Para consultas contáctanos a 2376-4699 / 5803-2545.`
+            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total} esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`          
+          break
+        case 'T':
+          SMS = params.warehouse
+            ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 2376-4699 / 5803-2545`
+            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
+          break
+        default:
+          SMS = params.warehouse
+            ? `NOW EXPRESS, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
+            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
+      }
     }
-
+    
     if (SMS.length > 160) {
       SMS = SMS.slice(0, 160)
     }
 
-    const phone = `502${params.profile[0].phone}`
+    let phoneFromRequest = params.profile[0].phone
+    const phone = phoneFromRequest.includes('+1') ? phoneFromRequest : `502${params.profile[0].phone}`
 
     var options = {
       method: 'POST',
@@ -588,19 +596,19 @@ module.exports.packagesBulkUpdate = async event => {
      * @property {Array<PackagesBulkUpdate>} data
      */
     const data = JSON.parse(event.body)
-    console.log('Request Body', data)
-    const requiredFields = ['package_id', 'costo_producto', 'total_a_pagar', 'poliza', 'manifest_id']
+    console.log('Request Body..', data)
+    const requiredFields = ['package_id', 'total_a_pagar', 'poliza', 'manifest_id']
     const requiredErrorsArray = data.map((pack, index) => (requiredFields.some(k => !pack[k]) ? index : []))
     const requiredFieldsErrors = requiredErrorsArray.reduce((acc, item) => acc.concat(item), [])
 
     if (requiredFieldsErrors && requiredFieldsErrors.length > 0) throw `Missing parameter in packages with index: ${requiredFieldsErrors.join(', ')}`
 
-    const status = 'Recoger en Prime'
+    //const status = 'Recoger en Prime'
     const ing_date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
 
     const { manifestIds, packagesIds, updateValues } = data.reduce((r, d) => {
       const packageId = d.package_id
-
+      const status = d.on_hold ? 'On Hold' : 'Recoger en Prime'
       const value = `(
         ${d.package_id ? d.package_id : null},
         ${d.tasa ? d.tasa : 0},
@@ -631,9 +639,13 @@ module.exports.packagesBulkUpdate = async event => {
     console.log('Update DB Info', updateInfo)
     if (updateInfo && updateInfo.affectedRows > 0) {
       const [uncompleteManifests] = await connection.execute(storage.getUncompleteManifests(manifestIds))
+      const [uncompleteManifestsByHold] = await connection.execute(storage.getUncompleteManifestsByHold(manifestIds))
 
       const manifestValues = manifestIds.reduce((result, id) => {
         const isUncomplete = uncompleteManifests.some(um => Number(um.manifest_id) === Number(id))
+        const isUncompleteByHold = uncompleteManifestsByHold.some(um => Number(um.manifest_id) === Number(id))
+
+        if (isUncompleteByHold) return [...(result || []), `(${id}, 'PENDINGHOLD')`]
 
         if (isUncomplete) return result
 
@@ -647,11 +659,28 @@ module.exports.packagesBulkUpdate = async event => {
 
       const sendSMSPromises = smsData.map(data => {
         const params = getSendSMSviaSNSParams(data)
-
+        console.log('SMS params',params)      
         return sendSMSviaSNS(params)
       })
-
+      
+      //report SMS
       await Promise.all(sendSMSPromises)
+
+      let userData = [
+        {contact_name: "AdminChargeReport",phone: '35757882'},
+        {contact_name: "AdminChargeReport",phone: '54586747'},
+        {contact_name: "AdminChargeReport",phone: '32871813'},
+        {contact_name: "AdminChargeReport",phone: '52016022'},
+        {contact_name: "AdminChargeReport",phone: '+16095919448'}
+      ]
+      const sendSMSPromisesReport = userData.map(data => {
+        const params = getSendSMSviaSNSParams(data)     
+        console.log('SMS Report params',params)       
+        return sendSMSviaSNS(params)
+      })
+      //report SMS by charge
+      await Promise.all(sendSMSPromisesReport)
+
     }
     console.log('Response packages Ids', packagesIds)
     return response(200, { data: packagesIds }, connection)
