@@ -360,6 +360,13 @@ const calculateToTal = (data) => {
   return amount
 }
 
+const getPackagesDescription = (items) => {
+  const query = `select guia,description from paquetes
+                where guia in (${items.join(',')})`;
+  console.log('getPackagesDescription query',query)
+  return query
+}
+
 module.exports = {
   post: create,
   isEmpty,
@@ -386,5 +393,6 @@ module.exports = {
   products,
   revertPackage,
   revertConciliation,
-  stores
+  stores,
+  getPackagesDescription
 }

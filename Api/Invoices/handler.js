@@ -121,6 +121,16 @@ module.exports.documents = async event => {
     }
 
     const [documents] = await connection.execute(storage.get(params))
+    
+    //get packages descriptions
+    let packagesList = documents.map(element => element.observations.replace('Guias # ','').replace(/\s/g, '').slice(0, -1).split(','))
+    let packagesIds = [...new Set([].concat.apply([], packagesList))]
+    const [packagesDescriptions] = await connection.execute(storage.getPackagesDescription(packagesIds))
+    
+    documents.forEach(element=>{
+      console.log(element.observations)
+      element.descripcionPaquetes = packagesDescriptions.filter(el => element.observations.includes(el.guia))
+    })
 
     return response(200, documents, connection)
   } catch (e) {
