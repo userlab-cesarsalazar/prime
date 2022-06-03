@@ -362,8 +362,7 @@ const calculateToTal = (data) => {
 
 const getPackagesDescription = (items) => {
   const query = `select guia,description from paquetes
-                where guia in (${items.join(',')})`;
-  console.log('getPackagesDescription query',query)
+                where guia in (${items.join(',')})`;  
   return query
 }
 
