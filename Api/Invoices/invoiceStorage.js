@@ -245,7 +245,7 @@ const getDetailPDF = (id) => {
 }
 
 const getDocumentByClient = (id) => {
-  const query = `SELECT master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva
+  const query = `SELECT description,master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva
                   FROM paquetes
                   WHERE client_id = '${id}' AND ent_date = '0000-00-00'`;
   return query
@@ -360,6 +360,12 @@ const calculateToTal = (data) => {
   return amount
 }
 
+const getPackagesDescription = (items) => {
+  const query = `select guia,description from paquetes
+                where guia in (${items.join(',')})`;  
+  return query
+}
+
 module.exports = {
   post: create,
   isEmpty,
@@ -386,5 +392,6 @@ module.exports = {
   products,
   revertPackage,
   revertConciliation,
-  stores
+  stores,
+  getPackagesDescription
 }
