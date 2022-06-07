@@ -39,7 +39,7 @@ const buildXML = (data, moment) => {
                         <Columna2>Texto Col 2</Columna2>
                         <Columna3>Texto Col 3</Columna3>
                         <Columna4>Texto Col 4</Columna4>
-                        <Columna5>${accounting.toFixed(_iva, 2)}</Columna5>
+                        <Columna5>${_iva !== 0 ? accounting.toFixed(_iva, 2) : 0.000001}</Columna5>
                         <Columna6>Texto Col 6</Columna6>
                         <Columna7>Texto Col 7</Columna7>
                         <Columna8>Texto Col 8</Columna8>
@@ -100,7 +100,7 @@ const buildXMLAllInclude = (data, moment) => {
                         <Columna2>Texto Col 2</Columna2>
                         <Columna3>Texto Col 3</Columna3>
                         <Columna4>Texto Col 4</Columna4>
-                        <Columna5>${accounting.toFixed(amount_cuenta_ajena, 2)}</Columna5>
+                        <Columna5>${amount_cuenta_ajena !== 0 ? accounting.toFixed(amount_cuenta_ajena, 2) : 0.000001}</Columna5>
                         <Columna6>Texto Col 6</Columna6>
                         <Columna7>Texto Col 7</Columna7>
                         <Columna8>Texto Col 8</Columna8>
