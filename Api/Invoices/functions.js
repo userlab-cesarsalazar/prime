@@ -128,7 +128,7 @@ const headerInvoice = (data, moment) => {
                     <TrnEFACECliCod/>
                     <TrnEFACECliNom>${data.client_name}</TrnEFACECliNom>
                     <TrnEFACECliDir>${data.address}</TrnEFACECliDir>
-                    <TrnObs>${data.observations}</TrnObs>
+                    <TrnObs>${data.guiaDetails}</TrnObs>
                     <TrnEmail>${data.email_client}</TrnEmail>`
 }
 
