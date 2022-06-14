@@ -669,7 +669,7 @@ module.exports.packagesBulkUpdate = async event => {
       let userData = [
         {contact_name: "AdminChargeReport",phone: '35757882'},
         {contact_name: "AdminChargeReport",phone: '54586747'},
-        {contact_name: "AdminChargeReport",phone: '32871813'},
+        {contact_name: "AdminChargeReport",phone: '46127779'},
         {contact_name: "AdminChargeReport",phone: '52016022'},
         {contact_name: "AdminChargeReport",phone: '+16095919448'}
       ]
