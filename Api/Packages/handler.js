@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise')
 const moment = require('moment-timezone')
 const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
-let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
+let { response, getBody, escapeFields,notifyEmail } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./packageStorage')
 const request = require('request')
 const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
@@ -335,6 +335,22 @@ function prepareToSend(user, profile) {
   return template
 }
 
+function prepareToSendOnHold(userData) {
+  let MSG = `El paquete del cliente con codigo ${userData.data.client_id} tiene un paquete a ticket. Numero de Tracking: ${userData.data.tracking}`  
+  const template = {
+    mailList: ["soporte@nowexpresscourier.com","ledr1993@gmail.com"],
+    from: 'info@primenowcourier.com',
+    subject: `Paquete en Ticket`,    
+    body: {
+      Html: {
+        Charset: 'UTF-8',
+        Data: MSG,
+      },
+    },
+  }
+  return template
+}
+
 module.exports.sendPrime = async event => {
   try {
     const uuidv1 = require('uuid/v1')
@@ -471,6 +487,14 @@ module.exports.sendSMSTigo = async event => {
         resolve(response.body)
       })
     })
+
+    //SEND SMS TO SUPPORT          
+    
+    if (params.data.status === 'On Hold') {          
+      let template = prepareToSendOnHold(params)
+      await notifyEmail(AWS, template)
+    }
+
     return response(200, P, null)
   } catch (e) {
     console.log(e, 'catch')
