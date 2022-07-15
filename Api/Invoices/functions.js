@@ -20,7 +20,7 @@ const buildXML = (data, moment) => {
                   <TrnCan>${x.qty}</TrnCan>
                   <TrnVUn>${x.unitario && x.cod_service !== 4 ? x.unitario : x.amount }</TrnVUn>
                   <TrnUniMed>UNI</TrnUniMed>
-                  <TrnVDes>0.0</TrnVDes>
+                  <TrnVDes>${x.descuento ? x.descuento.toFixed(2) : '0.0'}</TrnVDes>
                   <TrnArtBienSer>S</TrnArtBienSer>
                   <TrnArtImpAdiCod>0</TrnArtImpAdiCod>
                   <TrnArtImpAdiUniGrav>0</TrnArtImpAdiUniGrav>
