@@ -46,7 +46,7 @@ const create = (data,date,correlative) => {
     amount = calculateToTal(data.items)
   
   const query = `INSERT INTO documents (client_id, nit, address, type_doc, num_control,
-                  total, sub_total, total_cta, observations,status,created_at,created_by, payment_id, store_id)
+                  total, sub_total, total_cta, observations,status,created_at,created_by, payment_id, store_id,discount)
                   VALUES ('${data.client_id}',
                   '${data.nit}',
                   '${data.address}',
@@ -60,7 +60,7 @@ const create = (data,date,correlative) => {
                   '${date}',
                   '${data.created_by}',
                   ${data.payment_type},
-                  ${data.store_id}) `
+                  ${data.store_id},${data.discount}) `
   
   return query
 }
