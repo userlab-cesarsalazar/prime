@@ -122,23 +122,32 @@ const createWarehouseEntryDetail = (
 
 const findManifestById = manifest_id => `SELECT manifest_id FROM manifest WHERE manifest_id = ${manifest_id} AND status = 'OPEN'`
 
-const findPackagesByTracking = tracking => `SELECT package_id, manifest_id FROM paquetes WHERE tracking = '${tracking}'`
+const findOpenManifest = manifest_id => `SELECT manifest_id FROM manifest WHERE status = 'OPEN'`
+
+const findPackagesByTracking = tracking => `SELECT package_id, manifest_id,guia,client_id FROM paquetes WHERE tracking = '${tracking}'`
 
 const getUserInfo = client_id => `
   SELECT client_id, email, contact_name, client_name, phone FROM clientes WHERE client_id = '${client_id}'
 `
 
 const updatePackage = (data,package_id,manifest_id) => {
-  const query = `UPDATE paquetes SET 
+  let query = `UPDATE paquetes SET 
             tracking = '${data.tracking}',                
             weight = '${data.weight}',
             valor_miami = ${data.invoice_price ? data.invoice_price : 0},
             costo_producto = ${data.invoice_price ? data.invoice_price : 0},
             description = '${data.package_description}',
-            category_id = ${data.category_id ? data.category_id : 1},
-            total_a_pagar = ${data.total_a_pagar ? data.total_a_pagar : 0},
-            voucher_bill = ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},  
-            voucher_payment = ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},
+            category_id = ${data.category_id ? data.category_id : 1},`
+
+            if(data.voucher_bill.length > 5 ){
+              query +=`voucher_bill = ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},`              
+            }
+
+            if(data.voucher_payment.length > 5){
+              query += `voucher_payment = ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},`
+            }
+
+           query += `total_a_pagar = ${data.total_a_pagar ? data.total_a_pagar : 0},            
             destination_id = ${data.destination_id},            
             supplier_id = ${data.supplier_id},
             carrier_id = ${data.carrier_id},            
@@ -147,7 +156,39 @@ const updatePackage = (data,package_id,manifest_id) => {
             status = 'En Warehouse'
             WHERE package_id = ${package_id}
             AND status IN ('En Warehouse','Registrado','Listo para Entrega a Domicilio');`
+    console.log("updatePackage" ,query)
+  return query
+}
 
+const updatePackageWithGuide = (data,package_id,manifest_id,guia) => {
+  let query = `UPDATE paquetes SET 
+            tracking = '${data.tracking}',
+            guia = '${guia}',                
+            weight = '${data.weight}',
+            valor_miami = ${data.invoice_price ? data.invoice_price : 0},
+            costo_producto = ${data.invoice_price ? data.invoice_price : 0},
+            description = '${data.package_description}',
+            category_id = ${data.category_id ? data.category_id : 1},
+            total_a_pagar = ${data.total_a_pagar ? data.total_a_pagar : 0},`
+
+            if(data.voucher_bill.length > 5 ){
+              query +=`voucher_bill = ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},`              
+            }
+
+            if(data.voucher_payment.length > 5){
+              query += `voucher_payment = ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null},`
+            }
+            
+      query += `destination_id = ${data.destination_id},            
+            supplier_id = ${data.supplier_id},
+            carrier_id = ${data.carrier_id},            
+            measurements = '${data.measurements ? data.measurements : ''}',
+            manifest_id = ${manifest_id ? manifest_id : data.manifest_id },
+            status = 'En Warehouse'
+            WHERE package_id = ${package_id}
+            AND status IN ('En Warehouse','Registrado','Listo para Entrega a Domicilio');`
+
+  console.log("updatePackageWithGuide" ,query)
   return query
 }
 
@@ -167,4 +208,6 @@ module.exports = {
   findPackagesByTracking,
   getUserInfo,
   updatePackage,
+  updatePackageWithGuide,
+  findOpenManifest
 }

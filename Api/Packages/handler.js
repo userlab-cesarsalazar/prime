@@ -117,18 +117,27 @@ module.exports.create = async (event, context) => {
     data.ing_date = date
 
     const [checkPackage] = await connection.execute(storage.findByTracking(data))
+    
     if (checkPackage.length > 0) {
-      console.log('update', data)
       //update
+      console.log('update', data)      
       const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
       if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
-    } else {
-      console.log('create', data)
-      //create
-
-      /*  added by ledr
-          the guide is created automatically
-      */
+    } 
+    else if(data.status === 'Registrado'){
+      //created by client
+      console.log('create by client', data)
+      const [save] = await connection.execute(storage.createByClient(data))
+      console.log("save object ",save)
+      if(save) {
+        console.log("post detail")
+        const [postDetail_result] = await connection.execute(storage.postDetail(data, save.insertId, date,'Registrado'))
+        console.log("postDetail_result ",postDetail_result)
+      }
+    }
+    else {
+      // create by system
+      console.log('create by system', data)
       const [result] = await connection.execute(storage.findMaxPaqueteById())
       const newGuiaId = parseInt(result[0].id) + 1
       const [save] = await connection.execute(storage.post(data, newGuiaId))

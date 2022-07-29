@@ -154,10 +154,40 @@ const create = (data, newGuiaId) => {
   return query
 }
 
+const createByClient = (data) => {
+  const query = `INSERT INTO paquetes (tracking, client_id, weight, description, category_id, total_a_pagar, ing_date ,status,
+                entregado, cancelado, delivery, create_by, costo_producto, dai, cif, importe, master, poliza, tasa, total_iva,
+                voucher_bill,
+                voucher_payment)
+                  VALUES ('${data.tracking}',
+                  '${data.client_id}',
+                  '${data.weight}',
+                  '${data.description}',                  
+                  ${data.category_id ? data.category_id : 1},
+                  ${data.total},
+                  '${data.ing_date}',
+                  '${data.status}',
+                  0,0,0,'NEW_SYSTEM',${data.cost ? data.cost : 0},
+                  ${data.dai ? data.dai : 0.0},
+                  ${data.cif ? data.cif : 0.0},
+                  ${data.importe ? data.importe : 0.0},
+                  '${data.pn_master.master ? data.pn_master.master : ''}',
+                  '${data.pn_master.poliza ? data.pn_master.poliza : ''}',                  
+                  ${data.tasa ? data.tasa : 0.0},
+                  ${data.iva ? data.iva : 0.0},
+                  ${data.voucher_bill.length > 5 ? "'" + data.voucher_bill + "'" : null},
+                  ${data.voucher_payment.length > 5 ? "'" + data.voucher_payment + "'" : null}
+                  )`
+
+  return query
+}
+
 const createDetail = (data, package_id, date, status) => {
   let updateStatus = 3
   if (status === 'Entregado' || status === 'Entregado') {
     updateStatus = 4
+  }else if (status === 'Registrado') {
+    updateStatus = 5
   }
 
   const query = `INSERT INTO paquetes_detail (package_id, status, fecha_registro, client_id, tba)
@@ -203,7 +233,7 @@ const updateStatus = (data, package_id, date, status) => {
                   dai=${data.dai},
                   importe=${data.importe},
                   total_iva = ${data.iva},
-                  guia = '${data.guia}',
+                  guia = ${data.guia ? `'${data.guia}'` : null},
                   poliza = '${data.poliza}',
                   costo_producto = ${data.cost},
                   voucher_bill = '${data.voucher_bill}',
@@ -447,5 +477,6 @@ module.exports = {
   readGuideByMaster,
   readPackagesByTracking,
   findMaxPaqueteById,
-  getUncompleteManifestsByHold
+  getUncompleteManifestsByHold,
+  createByClient
 }
