@@ -1,0 +1,21 @@
+{
+  "name": "log-api",
+  "version": "1.0.0",
+  "description": "API log Services",
+  "main": "handler.js",
+  "author": "LEDR",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "export AWS_PROFILE=traestodo && serverless deploy",
+    "sls-local": "nodemon --exec sls offline"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.467.0",
+    "moment-timezone": "^0.5.25",
+    "mysql2": "^1.6.5"
+  },
+  "devDependencies": {
+    "serverless-offline": "^8.8.1"
+  }
+}

@@ -4,7 +4,7 @@ const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./warehouseStorage')
-const { getSendSMSviaSNSParams, sendSMSviaSNS } = require(`${isOffline ? '..' : '.'}/Packages/functions`)
+const { getSendSMSviaSNSParams, sendSMSviaSNS ,createLogsviaSNS} = require(`${isOffline ? '..' : '.'}/Packages/functions`)
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -146,8 +146,7 @@ module.exports.deleteCarrie = async event => {
 }
 
 module.exports.createWarehouseEntry = async event => {
-  const connection = await mysql.createConnection(dbConfig)
-
+  const connection = await mysql.createConnection(dbConfig)  
   try {
     const requiredFields = [
       'client_id',
@@ -163,6 +162,9 @@ module.exports.createWarehouseEntry = async event => {
     ]
 
     const body = escapeFields(getBody(event))
+
+    console.log("Request createWarehouseEntry: ",body)
+
     const errorFields = requiredFields.filter(k => !body[k])
     if (errorFields.length > 0 || !body) throw new Error(`The fields ${errorFields.join(', ')} are required`)
 
@@ -171,30 +173,77 @@ module.exports.createWarehouseEntry = async event => {
 
     const [trackingExists] = await connection.execute(storage.findPackagesByTracking(body.tracking))
 
-    if (trackingExists.length > 0) {      
-      await connection.execute(storage.updatePackage(body, trackingExists[0].package_id, trackingExists[0].manifest_id))
-     
-      throw new Error('The provided tracking exists already')
-    }
+    if(trackingExists.length > 0 && trackingExists[0].guia === null) {
+      
+      if(trackingExists[0].client_id !== body.client_id){
+        throw new Error(`El paquete no puede ser asociado a un cliente diferente a ${trackingExists[0].client_id}`)
+      }
+  
+      const [result] = await connection.execute(storage.findMaxPaqueteId())
+      const newGuiaId_ = parseInt(result[0].id) + 1
+      console.log("UPDATE WITH NEW GUIDE ",newGuiaId_)      
+            
+      //update with new guia
+      await connection.execute(storage.updatePackageWithGuide(body, trackingExists[0].package_id, manifest[0].manifest_id,newGuiaId_))
 
-    const [result] = await connection.execute(storage.findMaxPaqueteId())
+      const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
+      const params = {
+        ...getSendSMSviaSNSParams({ ...body, ...profileData }),
+        warehouse: true,
+      }
+  
+      await sendSMSviaSNS(params)
+      
+      //ledr-logs
+      await createLogsviaSNS(body,"warehouse-update-package-guide-assignment")
 
-    const newGuiaId = parseInt(result[0].id) + 1
+      return await response(200, { guia: newGuiaId_ }, connection)
 
-    await connection.execute(storage.createWarehouseEntry(body, newGuiaId))
+    }else {
 
-    const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
-    const params = {
-      ...getSendSMSviaSNSParams({ ...body, ...profileData }),
-      warehouse: true,
-    }
+      if (trackingExists.length > 0) {      
+        console.log("UPDATE")
 
-    await sendSMSviaSNS(params)
+        if(trackingExists[0].client_id !== body.client_id){
+          throw new Error(`El paquete no puede ser asociado a un cliente diferente a ${trackingExists[0].client_id}`)
+        }
 
-    return await response(200, { guia: newGuiaId }, connection)
+        
+        await connection.execute(storage.updatePackage(body, trackingExists[0].package_id, trackingExists[0].manifest_id))       
+        
+        //ledr-logs
+        await createLogsviaSNS(body,"warehouse-update-package")
+
+        return await response(200, { guia: trackingExists[0].guia }, connection)
+      }
+  
+      console.log("-- CREATE PACKAGE NORMAL --")
+
+      const [result] = await connection.execute(storage.findMaxPaqueteId())
+  
+      const newGuiaId = parseInt(result[0].id) + 1
+  
+      await connection.execute(storage.createWarehouseEntry(body, newGuiaId))
+  
+      const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
+      const params = {
+        ...getSendSMSviaSNSParams({ ...body, ...profileData }),
+        warehouse: true,
+      }
+  
+      await sendSMSviaSNS(params)
+      
+      //ledr-logs
+      await createLogsviaSNS(body,"warehouse-create-package")
+
+      return await response(200, { guia: newGuiaId }, connection)
+    } 
+
+    
+    
   } catch (error) {
     const message = error.message ? error.message : error
-
+    console.log("error >>",message)
     return await response(400, { error: message }, connection)
   }
 }

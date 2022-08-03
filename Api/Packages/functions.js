@@ -60,3 +60,27 @@ module.exports.getSendSMSviaSNSParams = data => ({
     },
   ],
 })
+
+module.exports.createLogsviaSNS = async (data,actionLog) => {
+  let payload = {
+    action: actionLog,
+    request: data,
+    user:data.userLog
+  }
+  const snsParams = {
+    Message: JSON.stringify(payload),
+    TopicArn: `arn:aws:sns:us-east-1:${process.env['ACCOUNT_ID']}:log-${process.env['STAGE']}-create`,
+  }
+  console.log("SNS log params ",snsParams)
+  await new Promise((resolve, reject) => {
+    sns.publish(snsParams, error => {
+      if (error) {
+        console.log('SNS LOG error ', error)
+        reject(error)
+      } else {
+        console.log('LOG ADDED')
+        resolve('added')
+      }
+    })
+  })
+}

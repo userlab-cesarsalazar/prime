@@ -7,7 +7,7 @@ let { response, getBody, escapeFields,notifyEmail } = require(`${isOffline ? '..
 let storage = require('./packageStorage')
 const request = require('request')
 const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-const { openSession, getSendSMSviaSNSParams, sendSMSviaSNS } = require('./functions')
+const { openSession, getSendSMSviaSNSParams, sendSMSviaSNS, createLogsviaSNS } = require('./functions')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -110,6 +110,7 @@ module.exports.readPackagesByTracking = async event => {
 
 module.exports.create = async (event, context) => {
   let connection = await mysql.createConnection(dbConfig)
+  let actionLog = 'package-create'
   try {
     let data = JSON.parse(event.body)
     if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
@@ -117,18 +118,29 @@ module.exports.create = async (event, context) => {
     data.ing_date = date
 
     const [checkPackage] = await connection.execute(storage.findByTracking(data))
+    
     if (checkPackage.length > 0) {
-      console.log('update', data)
       //update
+      actionLog = 'package-update'
+      console.log('update', data)      
       const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
       if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
-    } else {
-      console.log('create', data)
-      //create
-
-      /*  added by ledr
-          the guide is created automatically
-      */
+    } 
+    else if(data.status === 'Registrado'){
+      //created by client
+      actionLog = 'package-create-by-client'
+      console.log('create by client', data)
+      const [save] = await connection.execute(storage.createByClient(data))
+      console.log("save object ",save)
+      if(save) {
+        console.log("post detail")
+        const [postDetail_result] = await connection.execute(storage.postDetail(data, save.insertId, date,'Registrado'))
+        console.log("postDetail_result ",postDetail_result)
+      }
+    }
+    else {
+      // create by system
+      console.log('create by system', data)
       const [result] = await connection.execute(storage.findMaxPaqueteById())
       const newGuiaId = parseInt(result[0].id) + 1
       const [save] = await connection.execute(storage.post(data, newGuiaId))
@@ -167,6 +179,9 @@ module.exports.create = async (event, context) => {
         })
       })
     }
+
+    //ledr-logs
+    await createLogsviaSNS(data,actionLog)
 
     return response(200, data, connection)
   } catch (e) {
@@ -207,6 +222,9 @@ module.exports.update = async (event, context) => {
     const today = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
     await connection.execute(storage.saveRemaining(data, today))
     //}
+
+    //ledr-logs
+    await createLogsviaSNS(data,"package-update")
 
     return response(200, data, connection)
   } catch (e) {
