@@ -5,10 +5,10 @@ const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./storage')
-const date = moment().tz('America/Guatemala').format('YYYY-MM-DD HH:mm:ss')
 
 module.exports.create = async (event, context) => {
-    let connection = await mysql.createConnection(dbConfig)
+  const date = moment().tz('America/Guatemala').format('YYYY-MM-DD HH:mm:ss')  
+  let connection = await mysql.createConnection(dbConfig)
     try {
 
         let dataParams = event.body
@@ -20,7 +20,7 @@ module.exports.create = async (event, context) => {
       : null
         
         console.log("dataParams >> ",dataParams)
-                    
+
     if (!dataParams) throw 'missing_parameter.'
 
     await connection.execute(storage.post(dataParams,dataParams.request,date))
