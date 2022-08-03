@@ -7,7 +7,7 @@ let { response, getBody, escapeFields,notifyEmail } = require(`${isOffline ? '..
 let storage = require('./packageStorage')
 const request = require('request')
 const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-const { openSession, getSendSMSviaSNSParams, sendSMSviaSNS } = require('./functions')
+const { openSession, getSendSMSviaSNSParams, sendSMSviaSNS, createLogsviaSNS } = require('./functions')
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -110,6 +110,7 @@ module.exports.readPackagesByTracking = async event => {
 
 module.exports.create = async (event, context) => {
   let connection = await mysql.createConnection(dbConfig)
+  let actionLog = 'package-create'
   try {
     let data = JSON.parse(event.body)
     if (!data.tracking || !data.client_id || !data.weight || !data.description) throw 'missing_parameter.'
@@ -120,12 +121,14 @@ module.exports.create = async (event, context) => {
     
     if (checkPackage.length > 0) {
       //update
+      actionLog = 'package-update'
       console.log('update', data)      
       const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
       if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
     } 
     else if(data.status === 'Registrado'){
       //created by client
+      actionLog = 'package-create-by-client'
       console.log('create by client', data)
       const [save] = await connection.execute(storage.createByClient(data))
       console.log("save object ",save)
@@ -177,6 +180,9 @@ module.exports.create = async (event, context) => {
       })
     }
 
+    //ledr-logs
+    await createLogsviaSNS(data,actionLog)
+
     return response(200, data, connection)
   } catch (e) {
     console.log(e)
@@ -216,6 +222,9 @@ module.exports.update = async (event, context) => {
     const today = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
     await connection.execute(storage.saveRemaining(data, today))
     //}
+
+    //ledr-logs
+    await createLogsviaSNS(data,"package-update")
 
     return response(200, data, connection)
   } catch (e) {

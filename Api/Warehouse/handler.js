@@ -4,7 +4,7 @@ const isOffline = process.env['IS_OFFLINE']
 const { dbConfig } = require(`${isOffline ? '../..' : '.'}/commons/dbConfig`)
 let { response, getBody, escapeFields } = require(`${isOffline ? '../..' : '.'}/commons/utils`)
 let storage = require('./warehouseStorage')
-const { getSendSMSviaSNSParams, sendSMSviaSNS } = require(`${isOffline ? '..' : '.'}/Packages/functions`)
+const { getSendSMSviaSNSParams, sendSMSviaSNS ,createLogsviaSNS} = require(`${isOffline ? '..' : '.'}/Packages/functions`)
 
 const AWS = require('aws-sdk')
 AWS.config.update({ region: 'us-east-1' })
@@ -146,8 +146,7 @@ module.exports.deleteCarrie = async event => {
 }
 
 module.exports.createWarehouseEntry = async event => {
-  const connection = await mysql.createConnection(dbConfig)
-
+  const connection = await mysql.createConnection(dbConfig)  
   try {
     const requiredFields = [
       'client_id',
@@ -194,7 +193,10 @@ module.exports.createWarehouseEntry = async event => {
       }
   
       await sendSMSviaSNS(params)
-  
+      
+      //ledr-logs
+      await createLogsviaSNS(body,"warehouse-update-package-guide-assignment")
+
       return await response(200, { guia: newGuiaId_ }, connection)
 
     }else {
@@ -206,7 +208,12 @@ module.exports.createWarehouseEntry = async event => {
           throw new Error(`El paquete no puede ser asociado a un cliente diferente a ${trackingExists[0].client_id}`)
         }
 
+        
         await connection.execute(storage.updatePackage(body, trackingExists[0].package_id, trackingExists[0].manifest_id))       
+        
+        //ledr-logs
+        await createLogsviaSNS(body,"warehouse-update-package")
+
         return await response(200, { guia: trackingExists[0].guia }, connection)
       }
   
@@ -225,9 +232,15 @@ module.exports.createWarehouseEntry = async event => {
       }
   
       await sendSMSviaSNS(params)
-  
+      
+      //ledr-logs
+      await createLogsviaSNS(body,"warehouse-create-package")
+
       return await response(200, { guia: newGuiaId }, connection)
     } 
+
+    
+    
   } catch (error) {
     const message = error.message ? error.message : error
     console.log("error >>",message)
