@@ -646,8 +646,7 @@ module.exports.packagesBulkUpdate = async event => {
     if (requiredFieldsErrors && requiredFieldsErrors.length > 0) throw `Missing parameter in packages with index: ${requiredFieldsErrors.join(', ')}`
 
     //const status = 'Recoger en Prime'
-    const ing_date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
-
+    const ing_date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
     const { manifestIds, packagesIds, updateValues } = data.reduce((r, d) => {
       const packageId = d.package_id
       const status = d.on_hold ? 'On Hold' : 'Recoger en Prime'

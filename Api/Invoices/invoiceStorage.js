@@ -247,7 +247,7 @@ const getDetailPDF = (id) => {
 const getDocumentByClient = (id) => {
   const query = `SELECT description,master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva
                   FROM paquetes
-                  WHERE client_id = '${id}' AND ent_date = '0000-00-00'`;
+                  WHERE client_id = '${id}' AND ent_date = '0000-00-00' AND status NOT IN ('Registrado','On Hold')`;
   return query
 }
 

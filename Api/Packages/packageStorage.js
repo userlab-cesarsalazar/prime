@@ -408,7 +408,7 @@ const packagesBulkUpdate = updateValues => `
     total_a_pagar = VALUES(total_a_pagar),
     poliza = VALUES(poliza),
     master = VALUES(master),
-    ing_date = VALUES(ing_date),
+    ing_date_gt = VALUES(ing_date),
     status = VALUES(status),
     costo_producto = VALUES(costo_producto);
 `
