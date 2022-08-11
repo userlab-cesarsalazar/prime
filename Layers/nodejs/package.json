@@ -12,6 +12,7 @@
   "author": "Cesar Sanchez",
   "license": "ISC",
   "dependencies": {
+    "exceljs": "^4.2.1",
     "accounting-js": "^1.1.1",
     "aws-sdk": "^2.467.0",
     "base-64": "^1.0.0",
