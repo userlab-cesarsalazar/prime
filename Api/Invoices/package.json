@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "accounting-js": "^1.1.1",
-    "aws-sdk": "^2.467.0",
+    "aws-sdk": "^2.814.0",
     "lambda-warmer": "^1.2.1",
     "moment-timezone": "^0.5.25",
     "mysql2": "^1.6.5",
