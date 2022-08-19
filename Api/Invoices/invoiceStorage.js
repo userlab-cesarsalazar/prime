@@ -310,20 +310,36 @@ const updateReconciliation = (data, id, date) => {
 }
 const getReconciliation = (params) => {
   
-  let query = `SELECT D.id, D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation FROM documents D
+  let query = `SELECT D.id,
+                      D.client_id,
+                      num_control,
+                      total,
+                      observations,
+                      D.created_at,
+                      a.status as status_conciliation ,
+                      D.total as subtotal_discount ,
+                      D.discount,
+                      (D.total - D.discount) as total_discount
+                      FROM documents D
                  INNER JOIN account_reconciliation a on D.id = a.document_id
                  WHERE a.status = 'PENDING' ORDER BY D.id DESC`
   
   switch (params.type) {
     case 'client':
-      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation
+      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation,
+                D.total as subtotal_discount ,
+                D.discount,
+                (D.total - D.discount) as total_discount
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
                 WHERE D.client_id = '${params.id}' AND a.status = 'PENDING' ORDER BY D.id DESC`
       break
     case 'date':
-      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation
+      query = `SELECT D.id,D.client_id,num_control,total,observations,D.created_at,a.status as status_conciliation,
+                      D.total as subtotal_discount ,
+                      D.discount,
+                      (D.total - D.discount) as total_discount
                 FROM documents D
                 INNER JOIN clientes C  on D.client_id = C.client_id
                 INNER JOIN account_reconciliation a on D.id = a.document_id
