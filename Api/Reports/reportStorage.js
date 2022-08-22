@@ -188,8 +188,19 @@ const getInvoices = (date,store) => {
 }
 
 const getConciliation = (date,store) => {
-  const query = `SELECT COUNT(DISTINCT p.package_id) as package_id,  p.client_id, SUM(p.weight) as weight, d2.observations as guia, d2.total_cta, ar.status, d2.num_control, d2.id as transaction_id,
-                  GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia_wron, d2.store_id
+  const query = `SELECT COUNT(DISTINCT p.package_id) as package_id, 
+                  p.client_id, 
+                  SUM(p.weight) as weight, 
+                  d2.observations as guia,
+                  d2.total_cta,
+                  ar.status,
+                  d2.num_control,
+                  d2.id as transaction_id,
+                  GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia_wron,
+                  d2.store_id,
+                  d2.total_cta as subtotal_discount ,
+                  d2.discount,
+                  (d2.total_cta - d2.discount) as total_discount
                   FROM paquetes p
                   INNER JOIN document_details dd on p.package_id = dd.package_id AND dd.cod_service in (${parseInt(store) === 2 ? '5,7' : '1,7'})
                   INNER JOIN documents d2 on dd.id_document = d2.id
