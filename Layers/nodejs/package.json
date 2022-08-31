@@ -19,7 +19,7 @@
     "bcryptjs": "^2.4.3",
     "jwt-decode": "^2.2.0",
     "lambda-warmer": "^1.2.1",
-    "moment-timezone": "^0.5.25",
+    "moment-timezone": "^0.5.35",
     "mysql2": "^1.6.5",
     "request": "^2.88.0",
     "serverless-offline": "^4.10.3",
