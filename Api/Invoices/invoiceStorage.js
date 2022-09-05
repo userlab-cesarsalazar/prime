@@ -247,7 +247,7 @@ const getDetailPDF = (id) => {
 const getDocumentByClient = (id) => {
   const query = `SELECT description,master,poliza,dai,cif,guia,importe,tracking,weight,client_id,package_id,total_a_pagar,costo_producto,total_iva
                   FROM paquetes
-                  WHERE client_id = '${id}' AND ent_date = '0000-00-00' AND status NOT IN ('Registrado','On Hold')`;
+                  WHERE client_id = '${id}' AND ent_date = '0000-00-00' AND status NOT IN ('Registrado','On Hold','Entregado','En Warehouse')`;
   return query
 }
 
@@ -276,12 +276,22 @@ const products = () => {
 }
 
 const invoiceAnnul = (data, date, id, status) => {
-  const query = `UPDATE documents SET reason = '${data.reason}',
-                                      annulation_date = '${date}',
-                                      annul_by = '${data.annuled_by}',
+  let query = ''
+  if(data){
+    query = `UPDATE documents SET reason = '${data.reason}',
+    annulation_date = '${date}',
+    annul_by = '${data.annuled_by}',
+    status = ${status}
+    WHERE id = ${id}`
+  }else{
+    query = `UPDATE documents SET reason = NULL,
+                                      annulation_date = NULL,
+                                      annul_by = NULL,
                                       status = ${status}
                                       WHERE id = ${id}`
-
+  }
+  
+  console.log("query >> ",query)
   return query
 }
 
