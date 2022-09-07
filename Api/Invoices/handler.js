@@ -250,10 +250,10 @@ module.exports.annulSNS = async event => {
     : null
   console.log(body)
   try {
-    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD')
+    const date = moment().tz('America/Guatemala').format('YYYY-MM-DD hh:mm:ss')
     console.log(process.env['URL_DEV_FACT_CANCEL'], 'url')
     const xml_response = await storage.makeRequestSoap(SOAP, process.env['URL_DEV_FACT_CANCEL'], body.invoice)
-    console.log('eco factura response ')
+    console.log('eco factura Response: ')
     if (xml_response && xml_response.Envelope === null) throw new Error(`Error connecting with Ecofactura`)
 
     if (xml_response.Fault) throw new Error(`${xml_response.Fault.faultstring}`)
@@ -273,19 +273,28 @@ module.exports.annulSNS = async event => {
       xml: json.DTE.Xml[0],
     }
 
-    await connection.execute(storage.updatedToLog(serializerResponse, date, body.id))
+    //validate if exists an error
+    const validateResponse = serializerResponse.hasOwnProperty('error')
+    
+    if(!!validateResponse){      
+      console.log("ERROR >>> ",serializerResponse)
+      throw new Error(`Error on invoice validate`)      
+    }
 
+    //update packages info
+    await connection.execute(storage.updatedToLog(serializerResponse, date, body.id))
     await connection.execute(storage.revertPackage(body.id))
     await connection.execute(storage.revertConciliation(body.id, date))
+    
     console.log('all updated')
     delete serializerResponse.pdf
-    delete serializerResponse.xml
+    delete serializerResponse.xml    
     console.log('finished', serializerResponse)
+    
     return response(200, serializerResponse, connection)
   } catch (e) {
     const connection = await mysql.createConnection(dbConfig)
-    await connection.execute(storage.invoiceAnnul('', '', body.id, 2))
-
+    await connection.execute(storage.invoiceAnnul('', '', body.id, 5))    
     console.log(e, 'annulSNS-ERROR')
     return response(400, { message: 'Error' }, connection)
   }
