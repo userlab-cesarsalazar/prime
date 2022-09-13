@@ -181,6 +181,14 @@ module.exports.createWarehouseEntry = async event => {
   
       const [result] = await connection.execute(storage.findMaxPaqueteId())
       const newGuiaId_ = parseInt(result[0].id) + 1
+
+      //Validate Guia
+      const validateGuia = !!newGuiaId_            
+      if(!validateGuia){
+        console.log("No se ha creado la guia, intente nuevamente >> ",newGuiaId_)
+        throw new Error("No se ha creado la guia, intente nuevamente")
+      }
+    
       console.log("UPDATE WITH NEW GUIDE ",newGuiaId_)      
             
       //update with new guia
@@ -214,17 +222,27 @@ module.exports.createWarehouseEntry = async event => {
         //ledr-logs
         await createLogsviaSNS(body,"warehouse-update-package")
 
+        console.log("UPDATE ",trackingExists[0].guia)
+
         return await response(200, { guia: trackingExists[0].guia }, connection)
       }
   
       console.log("-- CREATE PACKAGE NORMAL --")
 
       const [result] = await connection.execute(storage.findMaxPaqueteId())
-  
-      const newGuiaId = parseInt(result[0].id) + 1
-  
+      const newGuiaId = parseInt(result[0].id) + 1  
+      console.log("New Guia Id >> ", newGuiaId)
+
+      //Validate Guia
+      const validateGuia = !!newGuiaId
+      if(!validateGuia){
+        console.log("No se ha creado la guia, intente nuevamente >> ",newGuiaId)
+        throw new Error("No se ha creado la guia, intente nuevamente")
+      }
+
       await connection.execute(storage.createWarehouseEntry(body, newGuiaId))
-  
+      console.log("Guia insertada ",newGuiaId)
+
       const [[profileData]] = await connection.execute(storage.getUserInfo(body.client_id))
       const params = {
         ...getSendSMSviaSNSParams({ ...body, ...profileData }),

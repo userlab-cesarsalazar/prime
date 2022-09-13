@@ -145,6 +145,13 @@ module.exports.create = async (event, context) => {
       console.log('create by system pkg', data)
       const [result] = await connection.execute(storage.findMaxPaqueteById())
       const newGuiaId = parseInt(result[0].id) + 1
+
+      const validateGuia = !!newGuiaId            
+      if(!validateGuia){
+        console.log("No se ha creado la guia, intente nuevamente from createPackage >> ",newGuiaId)
+        throw new Error("No se ha creado la guia, intente nuevamente")
+      }
+
       const [save] = await connection.execute(storage.post(data, newGuiaId))
 
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
