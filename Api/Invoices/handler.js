@@ -276,8 +276,20 @@ module.exports.annulSNS = async event => {
     //validate if exists an error
     const validateResponse = serializerResponse.hasOwnProperty('error')
     
-    if(!!validateResponse){      
+    if(!!validateResponse && serializerResponse.error != null){      
+      
       console.log("ERROR >>> ",serializerResponse)
+      
+      let alreadyAnnul = serializerResponse.error['_']
+
+      if(alreadyAnnul == "EL DOCUMENTO YA ESTA ANULÁDO"){        
+        await connection.execute(storage.updatedToLog(serializerResponse, date, body.id))
+        await connection.execute(storage.revertPackage(body.id))
+        await connection.execute(storage.revertConciliation(body.id, date))
+        console.log("EL DOCUMENTO YA ESTA ANULÁDO")
+        return response(400, { message: 'EL DOCUMENTO YA ESTA ANULÁDO' }, connection)
+      } 
+
       throw new Error(`Error on invoice validate`)      
     }
 
@@ -286,12 +298,13 @@ module.exports.annulSNS = async event => {
     await connection.execute(storage.revertPackage(body.id))
     await connection.execute(storage.revertConciliation(body.id, date))
     
-    console.log('all updated')
+    console.log('** all updated **')
     delete serializerResponse.pdf
     delete serializerResponse.xml    
     console.log('finished', serializerResponse)
     
     return response(200, serializerResponse, connection)
+
   } catch (e) {
     const connection = await mysql.createConnection(dbConfig)
     await connection.execute(storage.invoiceAnnul('', '', body.id, 5))    
