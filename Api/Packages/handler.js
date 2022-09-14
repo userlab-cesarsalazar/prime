@@ -118,18 +118,20 @@ module.exports.create = async (event, context) => {
     data.ing_date = date
 
     const [checkPackage] = await connection.execute(storage.findByTracking(data))
-    
+      
     if (checkPackage.length > 0) {
-      //update
-      actionLog = 'package-update'
-      console.log('update', data)      
-      const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
-      if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))
+      //update package
+      // actionLog = 'package-update'
+      // console.log('update pkg', data)      
+      // const [update] = await connection.execute(storage.put(checkPackage[0], data, date, null))
+      // if (update) await connection.execute(storage.postDetail(data, checkPackage[0].package_id, date))      
+      console.log("package-create - El paquete ya existe ",data)
+      throw new Error('PAQUETE YA EXISTE')           
     } 
     else if(data.status === 'Registrado'){
       //created by client
       actionLog = 'package-create-by-client'
-      console.log('create by client', data)
+      console.log('create by client pkg', data)
       const [save] = await connection.execute(storage.createByClient(data))
       console.log("save object ",save)
       if(save) {
@@ -137,12 +139,19 @@ module.exports.create = async (event, context) => {
         const [postDetail_result] = await connection.execute(storage.postDetail(data, save.insertId, date,'Registrado'))
         console.log("postDetail_result ",postDetail_result)
       }
-    }
+    }    
     else {
       // create by system
-      console.log('create by system', data)
+      console.log('create by system pkg', data)
       const [result] = await connection.execute(storage.findMaxPaqueteById())
       const newGuiaId = parseInt(result[0].id) + 1
+
+      const validateGuia = !!newGuiaId            
+      if(!validateGuia){
+        console.log("No se ha creado la guia, intente nuevamente from createPackage >> ",newGuiaId)
+        throw new Error("No se ha creado la guia, intente nuevamente")
+      }
+
       const [save] = await connection.execute(storage.post(data, newGuiaId))
 
       if (save) await connection.execute(storage.postDetail(data, save.insertId, date))
@@ -185,12 +194,18 @@ module.exports.create = async (event, context) => {
 
     return response(200, data, connection)
   } catch (e) {
-    console.log(e)
-    return response(400, e, connection)
+    // console.log(e)
+    // return response(400, e, connection)
+    const message = e.message ? e.message : e
+    console.log("error >>",message)
+    return await response(400, { error: message }, connection)
   }
 }
 
 module.exports.update = async (event, context) => {
+
+  console.log("--UPDATE METHOD--");
+
   const connection = await mysql.createConnection(dbConfig)
   try {
     const package_id = event.pathParameters && event.pathParameters.package_id ? JSON.parse(event.pathParameters.package_id) : undefined
