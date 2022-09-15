@@ -187,25 +187,50 @@ const getInvoices = (date,store) => {
   return query
 }
 
-const getConciliation = (date,store) => {
-  const query = `SELECT COUNT(DISTINCT p.package_id) as package_id, 
-                  p.client_id, 
-                  SUM(p.weight) as weight, 
-                  d2.observations as guia,
-                  d2.total_cta,
-                  ar.status,
-                  d2.num_control,
-                  d2.id as transaction_id,
-                  GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia_wron,
-                  d2.store_id,
-                  d2.total_cta as subtotal_discount ,
-                  d2.discount,
-                  (d2.total_cta - d2.discount) as total_discount
-                  FROM paquetes p
-                  INNER JOIN document_details dd on p.package_id = dd.package_id AND dd.cod_service in (${parseInt(store) === 2 ? '5,7' : '1,7'})
-                  INNER JOIN documents d2 on dd.id_document = d2.id
-                  INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
-                  WHERE recorded_at = '${date}' and d2.store_id = ${parseInt(store)}  GROUP by d2.id`
+const getConciliation = (date,store,type) => {
+  console.log("TYPE >> ",type)
+  let query = ''
+  if(type == 'FACTM'){
+    console.log("TYPE >> A")
+    query = `SELECT
+    d2.client_id,
+    d2.observations as guia,
+    d2.total_cta,
+    ar.status,
+    d2.num_control,
+    d2.id as transaction_id,
+    d2.store_id,
+    d2.total_cta as subtotal_discount ,
+    d2.discount,
+    (d2.total_cta - d2.discount) as total_discount
+    FROM  documents d2
+    INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
+    WHERE recorded_at = '${date}'
+      and d2.type_doc = 4
+      and d2.store_id = ${parseInt(store)}
+    GROUP by d2.id;`
+  }else{
+    console.log("TYPE >> B")
+    query = `SELECT COUNT(DISTINCT p.package_id) as package_id, 
+    p.client_id, 
+    SUM(p.weight) as weight, 
+    d2.observations as guia,
+    d2.total_cta,
+    ar.status,
+    d2.num_control,
+    d2.id as transaction_id,
+    GROUP_CONCAT(DISTINCT p.guia SEPARATOR ',') as guia_wron,
+    d2.store_id,
+    d2.total_cta as subtotal_discount ,
+    d2.discount,
+    (d2.total_cta - d2.discount) as total_discount
+    FROM paquetes p
+    INNER JOIN document_details dd on p.package_id = dd.package_id AND dd.cod_service in (${parseInt(store) === 2 ? '5,7' : '1,7'})
+    INNER JOIN documents d2 on dd.id_document = d2.id
+    INNER JOIN account_reconciliation ar on d2.id = ar.document_id AND ar.status = 'DONE'
+    WHERE recorded_at = '${date}' and d2.store_id = ${parseInt(store)}  GROUP by d2.id`
+  }
+  console.log("QUERY >> ",query)
   return query
 }
 const getGuiaDetail = (guia) => {
