@@ -177,7 +177,7 @@ module.exports.documentByClient = async event => {
 
     const [documents] = await connection.execute(storage.getDocumentByClient(client))
 
-    if (documents.length === 0) throw Error('This client does not have packages to generate an Invoice')
+    //if (documents.length === 0) throw Error('This client does not have packages to generate an Invoice')
 
     const [client_info] = await connection.execute(storage.getClientInfo(client))
 

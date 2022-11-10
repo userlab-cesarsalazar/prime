@@ -257,6 +257,7 @@ const getClientInfo = (id) => {
   //                WHERE client_id = '${id}'`;
 
 const query = `SELECT 
+                A.client_id,
                 B.name as contact_name,
                 B.name as client_name,
                 A.email,
