@@ -473,18 +473,18 @@ module.exports.sendSMSTigo = async event => {
       switch (params.data.client_id.charAt(0)) {
         case 'P':
           SMS = params.warehouse
-            ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}. Para consultas contáctanos a 2376-4699 / 5803-2545.`
-            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, Total: ${params.data.total} esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`          
+            ? `NOW EXPRESS, recibimos en MIAMI tu paquete. Tracking: ${params.data.tracking}. Para consultas bit.ly/3hNgehC`
+            : `NOW EXPRESS, Tu paquete esta en Guatemala. Tracking: ${params.data.tracking}, Total: ${params.data.total} . Coordina tu entrega aquí: bit.ly/3hNgehC`            
           break
         case 'T':
           SMS = params.warehouse
-            ? `NOW EXPRESS, hemos recibido en nuestras bodegas de MIAMI tu paquete: ${params.data.tracking}, Para consultas contáctanos a 2376-4699 / 5803-2545`
-            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
+            ? `NOW EXPRESS, recibimos en MIAMI tu paquete. Tracking: ${params.data.tracking}. Para consultas bit.ly/3hNgehC`
+            : `NOW EXPRESS, Tu paquete esta en Guatemala. Tracking: ${params.data.tracking}, Total: ${params.data.total} . Coordina tu entrega aquí: bit.ly/3hNgehC`
           break
         default:
           SMS = params.warehouse
-            ? `NOW EXPRESS, recibimos en MIAMI tu paquete: ${params.data.tracking}, a partir del 15 de Nov nuestra tarifa será desglosada, ingresa a la pag. web para cotizar tu paquete.`
-            : `NOW EXPRESS, Informa tu paquete: ${params.data.tracking}, Cliente: ${params.data.client_id}, LBs: ${params.data.weight}. esta listo para entrega. Contáctanos a 2376-4699 / 5803-2545`
+            ? `NOW EXPRESS, recibimos en MIAMI tu paquete. Tracking: ${params.data.tracking}. Para consultas bit.ly/3hNgehC`
+            : `NOW EXPRESS, Tu paquete esta en Guatemala. Tracking: ${params.data.tracking}, Total: ${params.data.total} . Coordina tu entrega aquí: bit.ly/3hNgehC`
       }
     }
     
