@@ -725,6 +725,8 @@ module.exports.packagesBulkUpdate = async event => {
       let userData = [
         {contact_name: "AdminChargeReport",phone: '35757882'},                
         {contact_name: "AdminChargeReport",phone: '52016022'},
+        {contact_name: "AdminChargeReport",phone: '54978132'},
+        {contact_name: "AdminChargeReport",phone: '32370023'},
         {contact_name: "AdminChargeReport",phone: '+16095919448'}
       ]
       const sendSMSPromisesReport = userData.map(data => {
